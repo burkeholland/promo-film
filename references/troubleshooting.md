@@ -42,6 +42,8 @@
 | "It does not sound cleaned up" | The cut was turned up into the limiter and then cleaned, or cleaned and then turned up into a limiter. Clean the recording, then one gain: set `LOUDNESS` to the value compose prints for no limiting. |
 | Whisper reads the right words but the person hears a mistake | Whisper fills in what it expects. Trust the runs and the spectrogram, and ask the person to listen at the times you changed. |
 | The lips drift in a camera part after new sound was laid in | The new sound is offset from the take. Measure it to the millisecond (`lag()` in `examples/local-models/audio/v6audio.py`), one offset for each side of a change. `tools/align.py` gives it to 10 ms. |
+| Captions show the old words after a voice splice or a re-recorded line | Captions come from `film/words.mjs`, which was made from the take. Run `python tools/transcribe.py` on the recording you built, then `node captions.mjs`. With only a finished file, transcribe that file. |
+| Whisper takes many times the file's length and the transcript ends in nonsense | It made words up over silence at the end. They have no length (start equals end). `transcribe.py` leaves them out and says so; with Whisper used directly, drop everything from the first run of three such words. |
 | `wave.py`: `No module named matplotlib` | `pip install matplotlib`, or `--no-picture` for the runs alone. |
 
 ## Preview

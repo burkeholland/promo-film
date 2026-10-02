@@ -154,6 +154,13 @@ def main():
             else:
                 words.append({'text': text, 'start': word['start'], 'heard': word['start'], 'end': word['end'], 'line': index})
 
+    # Over silence at the end Whisper can make words up. They have no length.
+    for i in range(len(words) - 2):
+        if all(w['end'] - w['start'] < 0.02 for w in words[i:i + 3]):
+            print(f'Left out {len(words) - i} made-up words after {words[i]["start"]:.1f} s (silence)')
+            del words[i:]
+            break
+
     db = loudness(audio)
     for i, word in enumerate(words):
         limit = words[i + 1]['start'] - 0.03 if i + 1 < len(words) else word['end']
