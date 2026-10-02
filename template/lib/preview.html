@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Preview</title>
+<link rel="icon" href="data:,">
+<style>
+  :root { color-scheme: dark; --line: #2b3038; --dim: #8b949e; --ink: #e6edf3; --blue: #4493f8; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { display: grid; grid-template-rows: auto 1fr auto; background: #0d1117; color: var(--ink); font: 13px/1.4 'Segoe UI', system-ui, sans-serif; overflow: hidden; }
+  header { display: flex; gap: 16px; align-items: center; padding: 8px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  header b { font-weight: 600; }
+  #clock { font: 600 15px/1 ui-monospace, Consolas, monospace; }
+  #where { color: var(--dim); font-family: ui-monospace, Consolas, monospace; }
+  #said { flex: 1; overflow: hidden; text-overflow: ellipsis; color: var(--dim); text-align: right; }
+  #said mark { background: none; color: #fff; font-weight: 600; }
+  select, button, input { font: inherit; color: inherit; background: #161b22; border: 1px solid var(--line); border-radius: 6px; padding: 4px 9px; }
+  button { cursor: pointer; }
+  button:hover { background: #21262d; }
+  main { display: grid; grid-template-columns: 1fr 300px; min-height: 0; }
+  #room { position: relative; min-width: 0; min-height: 0; display: grid; place-items: center; padding: 12px; }
+  #stage { position: relative; overflow: hidden; background: #000; box-shadow: 0 0 0 1px var(--line); }
+  #stage video { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transform-origin: 0 0; }
+  #stage iframe { position: absolute; left: 0; top: 0; width: 1536px; height: 864px; border: 0; transform-origin: 0 0; pointer-events: none; visibility: hidden; background: #fff; }
+  #message { position: absolute; inset: 0; display: none; place-items: center; padding: 24px; background: rgba(13, 17, 23, .92); white-space: pre-wrap; font: 12px/1.5 ui-monospace, Consolas, monospace; overflow: auto; }
+  #message.error { color: #ff7b72; place-items: start; }
+  aside { display: grid; grid-template-rows: auto 1fr auto; border-left: 1px solid var(--line); min-height: 0; }
+  aside h2 { margin: 0; padding: 10px 12px 6px; font-size: 12px; font-weight: 600; color: var(--dim); text-transform: uppercase; letter-spacing: .04em; }
+  #notes { overflow: auto; margin: 0; padding: 0 6px; list-style: none; }
+  #notes li { padding: 6px; border-radius: 6px; cursor: pointer; }
+  #notes li:hover { background: #161b22; }
+  #notes li.done { opacity: .45; text-decoration: line-through; }
+  #notes time { display: block; color: var(--blue); font: 12px/1.3 ui-monospace, Consolas, monospace; }
+  #notes .empty { color: var(--dim); cursor: default; }
+  #write { display: grid; gap: 6px; padding: 10px 12px; border-top: 1px solid var(--line); }
+  #write small { color: var(--dim); }
+  #note { width: 100%; }
+  footer { padding: 8px 14px 12px; border-top: 1px solid var(--line); }
+  #controls { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+  #controls .keys { margin-left: auto; color: var(--dim); }
+  #bar { position: relative; display: flex; height: 34px; border-radius: 6px; overflow: hidden; cursor: pointer; user-select: none; background: #161b22; }
+  #bar .part { overflow: hidden; padding: 0 6px; font: 11px/34px 'Segoe UI', sans-serif; white-space: nowrap; color: #c9d1d9; border-right: 1px solid #0d1117; }
+  #bar .film { background: #1f3a5f; }
+  #bar .camera { background: #30363d; }
+  #head { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #fff; pointer-events: none; }
+  #bar .pin { position: absolute; top: 0; width: 0; height: 0; margin-left: -4px; border: 4px solid transparent; border-top: 7px solid #f0b72f; pointer-events: none; }
+</style>
+</head>
+<body>
+<header>
+  <b id="name">Preview</b>
+  <select id="scene" title="Watch the whole edit or one scene"></select>
+  <span id="clock">0:00.00</span>
+  <span id="where"></span>
+  <span id="said"></span>
+</header>
+<main>
+  <div id="room"><div id="stage"><video id="recording" playsinline preload="auto"></video><div id="message"></div></div></div>
+  <aside>
+    <h2>Notes</h2>
+    <ul id="notes"></ul>
+    <div id="write">
+      <input id="note" placeholder="Note at this frame (N)" autocomplete="off">
+      <small>Saved to review/notes.md with the time and scene.</small>
+    </div>
+  </aside>
+</main>
+<footer>
+  <div id="controls">
+    <button id="play">Play</button>
+    <select id="rate" title="Speed"><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="1.5">1.5x</option><option value="2">2x</option></select>
+    <label><input type="checkbox" id="loop"> Loop this part (L)</label>
+    <span class="keys">Space play · ← → frame · Shift ← → second · [ ] part · N note</span>
+  </div>
+  <div id="bar"><div id="head"></div></div>
+</footer>
+<script type="module">
+const $ = id => document.getElementById(id);
+const FPS = 30;
+const DESK = 1536;
+const video = $('recording');
+const stage = $('stage');
+const message = $('message');
+const say = (text, error = false) => {
+  message.textContent = text;
+  message.className = error ? 'error' : '';
+  message.style.display = text ? 'grid' : 'none';
+};
+const stamp = t => `${Math.floor(t / 60)}:${(t % 60).toFixed(2).padStart(5, '0')}`;
+const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
+
+// ------------------------------------------------------------ the edit
+const only = new URLSearchParams(location.search).get('scene');
+let edit = { PARTS: [] };
+let WORDS = [];
+let broken = null;
+try {
+  edit = await import('/film/edit.mjs');
+  ({ WORDS } = await import('/film/words.mjs'));
+} catch (error) {
+  broken = `film/edit.mjs could not be loaded:\n\n${error.message || error}`;
+}
+const PARTS = edit.PARTS || [];
+const LEAD = edit.LEAD || 0;
+$('name').textContent = document.title = edit.NAME || 'Preview';
+
+const segments = [];
+if (only) {
+  const index = PARTS.findIndex(part => part.film === only);
+  const part = PARTS[index];
+  const lead = index === 0 ? LEAD : 0;
+  // A scene the edit doesn't play has no sound, and is as long as it says.
+  segments.push(part ? { ...part, lead, start: 0, length: lead + part.to - part.from } : { film: only, lead: 0, start: 0, length: 0, silent: true });
+} else {
+  let at = 0;
+  PARTS.forEach((part, index) => {
+    const lead = index === 0 ? LEAD : 0;
+    const length = lead + part.to - part.from;
+    segments.push({ ...part, lead, start: at, length });
+    at += length;
+  });
+}
+let total = segments.reduce((sum, segment) => sum + segment.length, 0);
+const sound = Boolean(edit.RECORDING) && segments.some(segment => !segment.silent);
+if (sound) video.src = `/media/${encodeURIComponent(edit.RECORDING)}`;
+
+const scenes = await fetch('/scenes').then(response => response.json()).catch(() => []);
+$('scene').innerHTML = `<option value="">Whole edit</option>${scenes.map(name => `<option${name === only ? ' selected' : ''}>${name}</option>`).join('')}`;
+$('scene').onchange = event => { location.href = event.target.value ? `/?scene=${event.target.value}` : '/'; };
+
+// ------------------------------------------------------------ films
+// Each film is its own page in a frame, posed by the same seek(t) the
+// renderer calls.
+const films = new Map();
+function film(name) {
+  if (films.has(name)) return films.get(name);
+  const node = document.createElement('iframe');
+  const entry = { node, api: null, info: null, error: null };
+  films.set(name, entry);
+  node.src = `/film/index.html?scene=${name}`;
+  stage.insertBefore(node, message);
+  (async () => {
+    await new Promise(done => node.addEventListener('load', done, { once: true }));
+    for (let tries = 0; tries < 200 && !node.contentWindow.__film; tries++) await new Promise(done => setTimeout(done, 25));
+    const api = node.contentWindow.__film;
+    if (!api) throw new Error(`film/scenes/${name}.mjs did not start. Open /film/index.html?scene=${name} and look at the console.`);
+    entry.info = await api.ready;
+    entry.api = api;
+    const segment = segments.find(s => s.film === name && s.silent);
+    if (segment) { segment.length = entry.info.duration; total = segment.length; layoutBar(); }
+  })().catch(error => { entry.error = String(error?.message || error); }).finally(() => { dirty = true; });
+  return entry;
+}
+
+// ------------------------------------------------------------ time
+let time = 0;
+let playing = false;
+let rate = 1;
+let dirty = true;
+let playSegment = null;
+let loopSegment = null;
+const segmentAt = t => segments.find(s => t < s.start + s.length) || segments.at(-1);
+// Where the recording is at a time in the cut, or null where it has no part
+// (a silent lead, or a scene outside the edit).
+const recordingAt = t => {
+  const segment = segmentAt(t);
+  if (!segment || segment.silent) return null;
+  const into = t - segment.start - segment.lead;
+  return into < 0 ? null : segment.from + into;
+};
+function seek(t) {
+  time = clamp(t, 0, Math.max(0, total - 1 / FPS));
+  playSegment = null;
+  const at = recordingAt(time);
+  if (sound && at != null && Math.abs(video.currentTime - at) > 1 / 120) video.currentTime = at;
+  dirty = true;
+  history.replaceState(null, '', `${location.pathname}${location.search}#t=${time.toFixed(2)}`);
+}
+function play(on = !playing) {
+  playing = on && total > 0;
+  playSegment = null;
+  if (!playing) { video.pause(); seek(Math.round(time * FPS) / FPS); }
+  else if (time >= total - 2 / FPS) seek(0);
+  $('play').textContent = playing ? 'Pause' : 'Play';
+}
+
+let last = performance.now();
+function tick(now) {
+  const dt = Math.min(.1, (now - last) / 1000);
+  last = now;
+  if (playing) {
+    const segment = segmentAt(time);
+    const at = recordingAt(time);
+    if (sound && at != null) {
+      // The recording keeps the time, so picture and sound can't drift. It
+      // only seeks where the edit jumps.
+      if (segment !== playSegment) {
+        if (!playSegment || Math.abs(video.currentTime - at) > .08) video.currentTime = at;
+        playSegment = segment;
+      }
+      video.playbackRate = rate;
+      if (video.paused) video.play().catch(() => {});
+      else if (!video.seeking && video.readyState >= 3) time = segment.start + segment.lead + video.currentTime - segment.from;
+    } else {
+      if (!video.paused) video.pause();
+      playSegment = null;
+      time += dt * rate;
+    }
+    if (loopSegment && time >= loopSegment.start + loopSegment.length - .5 / FPS) seek(loopSegment.start);
+    else if (time >= total - .5 / FPS) { time = total - 1 / FPS; play(false); }
+    dirty = true;
+  }
+  if (dirty) draw();
+  requestAnimationFrame(tick);
+}
+
+// ------------------------------------------------------------ picture
+function draw() {
+  dirty = false;
+  const segment = segmentAt(time);
+  if (!segment) return;
+  const local = time - segment.start;
+  const at = recordingAt(time);
+  let text = '';
+  let failed = false;
+  if (segment.film) {
+    const entry = film(segment.film);
+    if (entry.api) {
+      try { entry.api.seek(Math.min(local, entry.info.duration)); }
+      catch (error) { entry.error = String(error?.stack || error); }
+    }
+    if (entry.error) { text = `${segment.film}\n\n${entry.error}`; failed = true; }
+    else if (!entry.api) text = `Loading ${segment.film}...`;
+    for (const [name, other] of films) other.node.style.visibility = name === segment.film && other.api ? 'visible' : 'hidden';
+    video.style.opacity = 0;
+    $('where').textContent = `${segment.film} @ ${local.toFixed(2)}s`;
+  } else {
+    for (const other of films.values()) other.node.style.visibility = 'hidden';
+    video.style.opacity = 1;
+    // A camera part punches in to the closer framing at each punchIn time.
+    const close = (segment.punchIn || []).filter(cut => at >= cut).length % 2 === 1 && edit.CLOSE;
+    const fit = stage.clientWidth / (video.videoWidth || 1920);
+    const zoom = close ? (video.videoWidth || 1920) / close.w : 1;
+    video.style.transform = close ? `translate(${-close.x * fit * zoom}px, ${-close.y * fit * zoom}px) scale(${zoom})` : 'none';
+    $('where').textContent = `camera @ recording ${at.toFixed(2)}s${close ? ' (close)' : ''}`;
+  }
+  say(text, failed);
+  // The next film loads before its cut.
+  const next = segments[segments.indexOf(segment) + 1];
+  if (next?.film && segment.start + segment.length - time < 4) film(next.film);
+
+  $('clock').textContent = `${stamp(time)} / ${stamp(total)}  f${Math.round(time * FPS)}`;
+  $('head').style.left = `${total ? time / total * 100 : 0}%`;
+  $('said').innerHTML = at == null ? '' : spoken(at);
+}
+// The words around the one being said, which shows whether a cue is on it.
+function spoken(at) {
+  let lo = 0, hi = WORDS.length;
+  while (lo < hi) { const mid = (lo + hi) >> 1; if (WORDS[mid][1] <= at) lo = mid + 1; else hi = mid; }
+  const now = lo - 1;
+  const escape = text => text.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  return WORDS.slice(Math.max(0, now - 7), now + 6).map((word, k) => (Math.max(0, now - 7) + k === now ? `<mark>${escape(word[0])}</mark>` : escape(word[0]))).join(' ');
+}
+function layoutStage() {
+  const room = $('room');
+  const width = Math.max(160, Math.min(room.clientWidth - 24, (room.clientHeight - 24) * 16 / 9));
+  stage.style.width = `${width}px`;
+  stage.style.height = `${width * 9 / 16}px`;
+  for (const { node } of films.values()) node.style.transform = `scale(${width / DESK})`;
+  dirty = true;
+}
+new MutationObserver(layoutStage).observe(stage, { childList: true });
+addEventListener('resize', layoutStage);
+
+// ------------------------------------------------------------ the bar
+const bar = $('bar');
+let notes = [];
+function layoutBar() {
+  for (const node of [...bar.querySelectorAll('.part, .pin')]) node.remove();
+  for (const segment of segments) {
+    const node = document.createElement('div');
+    node.className = `part ${segment.film ? 'film' : 'camera'}`;
+    node.style.flex = `${segment.length} 0 0`;
+    node.textContent = segment.film || 'camera';
+    node.title = `${segment.film || 'camera'}  ${stamp(segment.start)} - ${stamp(segment.start + segment.length)}`;
+    bar.insertBefore(node, $('head'));
+  }
+  for (const note of notes) {
+    if (note.done || note.time == null || !total) continue;
+    const pin = document.createElement('div');
+    pin.className = 'pin';
+    pin.style.left = `${note.time / total * 100}%`;
+    bar.appendChild(pin);
+  }
+  dirty = true;
+}
+const scrub = event => { const box = bar.getBoundingClientRect(); seek(clamp((event.clientX - box.left) / box.width, 0, 1) * total); };
+bar.addEventListener('pointerdown', event => {
+  bar.setPointerCapture(event.pointerId);
+  if (playing) play(false);
+  scrub(event);
+  bar.onpointermove = scrub;
+});
+bar.addEventListener('pointerup', () => { bar.onpointermove = null; });
+
+// ------------------------------------------------------------ notes
+async function loadNotes() {
+  const text = await fetch('/notes').then(response => response.text()).catch(() => '');
+  notes = [...text.matchAll(/^- \[( |x)\] (\S+) \((?:frame \d+)\) ([^:]+): (.*)$/gm)].map(([, done, at, where, body]) => {
+    const [minutes, seconds] = at.split(':').map(Number);
+    return { done: done === 'x', time: only ? null : minutes * 60 + seconds, at, where, body };
+  });
+  $('notes').innerHTML = notes.length ? '' : '<li class="empty">No notes yet. Press N at the frame you want to talk about.</li>';
+  for (const note of notes) {
+    const item = document.createElement('li');
+    if (note.done) item.className = 'done';
+    item.innerHTML = `<time></time><span></span>`;
+    item.firstChild.textContent = `${note.at}  ${note.where}`;
+    item.lastChild.textContent = note.body;
+    if (note.time != null) item.onclick = () => { play(false); seek(note.time); };
+    $('notes').appendChild(item);
+  }
+  layoutBar();
+}
+$('note').addEventListener('keydown', async event => {
+  event.stopPropagation();
+  if (event.key === 'Escape') { event.target.value = ''; event.target.blur(); return; }
+  if (event.key !== 'Enter' || !event.target.value.trim()) return;
+  const line = `${stamp(time)} (frame ${Math.round(time * FPS)}) ${$('where').textContent}: ${event.target.value.trim()}`;
+  event.target.value = '';
+  event.target.blur();
+  await fetch('/notes', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ line }) });
+  loadNotes();
+});
+
+// ------------------------------------------------------------ controls
+$('play').onclick = () => play();
+$('rate').onchange = event => { rate = Number(event.target.value); };
+$('loop').onchange = event => { loopSegment = event.target.checked ? segmentAt(time) : null; };
+addEventListener('keydown', event => {
+  if (event.target.matches('input:not([type=checkbox]), select') || event.ctrlKey || event.metaKey || event.altKey) return;
+  const step = event.shiftKey ? 1 : 1 / FPS;
+  const index = segments.indexOf(segmentAt(time));
+  const keys = {
+    ' ': () => play(),
+    ArrowLeft: () => { play(false); seek(time - step); },
+    ArrowRight: () => { play(false); seek(time + step); },
+    '[': () => seek(time - segments[index].start > .3 ? segments[index].start : segments[Math.max(0, index - 1)].start),
+    ']': () => seek(segments[Math.min(segments.length - 1, index + 1)].start),
+    Home: () => seek(0),
+    l: () => { $('loop').click(); },
+    n: () => { play(false); $('note').focus(); },
+  };
+  const act = keys[event.key.length === 1 ? event.key.toLowerCase() : event.key];
+  if (!act || !segments.length) return;
+  event.preventDefault();
+  act();
+});
+
+// Saving a file in film/ reloads the page where it was.
+new EventSource('/events').onmessage = () => location.reload();
+
+// For checks from a script: where the preview is and what it shows.
+window.__preview = {
+  seek, play,
+  state: () => ({ time, total, playing, part: $('where').textContent, message: message.textContent, videoTime: video.currentTime, films: [...films].map(([name, entry]) => ({ name, ready: Boolean(entry.api), error: entry.error })) }),
+};
+
+layoutStage();
+layoutBar();
+loadNotes();
+if (broken) say(broken, true);
+else if (!segments.length) say('The edit (film/edit.mjs) has no parts yet.\nPick a scene from the list at the top to watch it on its own.');
+else {
+  if (segments[0].film) film(segments[0].film);
+  seek(Number(/#t=([\d.]+)/.exec(location.hash)?.[1]) || 0);
+}
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>

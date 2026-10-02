@@ -1,0 +1,8 @@
+<!-- The app's own accessibility icon (src/lib/icons.tsx) -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M8.00016 3.99984C8.36835 3.99984 8.66683 3.70136 8.66683 3.33317C8.66683 2.96498 8.36835 2.6665 8.00016 2.6665C7.63197 2.6665 7.3335 2.96498 7.3335 3.33317C7.3335 3.70136 7.63197 3.99984 8.00016 3.99984Z" fill="currentColor" />
+  <path d="M6 13.3335L8 9.3335L10 13.3335" />
+  <path d="M4 5.3335L8 6.66683L12 5.3335" />
+  <path d="M8 6.6665V9.33317" />
+  <circle cx="8" cy="8" r="7.335" />
+</svg>

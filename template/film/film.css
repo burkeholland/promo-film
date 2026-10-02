@@ -1,0 +1,205 @@
+/* GitHub's typeface, for the motion graphics (graphics.mjs). */
+@font-face { font-family: "Mona Sans"; src: url(assets/fonts/MonaSansVF.ttf) format("truetype"); font-weight: 200 900; font-stretch: 75% 125%; font-display: block; }
+@font-face { font-family: "Mona Sans Mono"; src: url(assets/fonts/MonaSansMonoVF.ttf) format("truetype"); font-weight: 200 900; font-display: block; }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; overflow: hidden; background: #0e1a26; }
+body { font-family: "Segoe UI", sans-serif; color: #1f2328; }
+
+#stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; overflow: hidden; }
+#wallpaper { position: absolute; inset: 0; background: url(assets/wallpaper.jpg) center / cover no-repeat; }
+
+.layer { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+.txt { position: absolute; white-space: nowrap; }
+.ic { position: absolute; display: block; overflow: visible; }
+img.logo { position: absolute; display: block; }
+
+/* Desktop icon (Windows 11, medium icons) */
+.dicon { position: absolute; border: 1px solid transparent; border-radius: 2px; }
+.dicon .tile { position: absolute; left: 13px; top: 3px; width: 48px; height: 48px; background: url(assets/app-icon.png) center / contain no-repeat; transform-origin: 50% 100%; }
+.dicon .label { position: absolute; left: 2px; right: 2px; top: 53px; font-size: 12px; line-height: 16px; color: #fff; text-align: center; text-shadow: 0 0 2px rgba(0, 0, 0, .55), 0 1px 2px rgba(0, 0, 0, .6); }
+
+/* Window */
+#win { position: absolute; overflow: hidden; border-radius: 4px; background: #fff; transform-origin: 50% 50%;
+  box-shadow: 0 0 0 .5px rgba(0, 0, 0, .16), 0 4px 10px rgba(0, 0, 0, .14), 0 14px 36px rgba(0, 0, 0, .24); }
+.titlebar { position: absolute; background: #eef4f9; }
+.tb-title { position: absolute; font-size: 12.4px; line-height: 24px; color: #505254; white-space: nowrap; transform: scale(.5); transform-origin: 0 0; }
+.sidebar { position: absolute; background: #f6f8fa; border-right: 1px solid #e3e8ec; }
+.navhl { position: absolute; background: #e8ecef; border-radius: 8px; }
+.navhl.hover { background: #eff2f5; }
+.avatar { position: absolute; border-radius: 50%; box-shadow: 0 0 0 1px rgba(31, 35, 40, .12); }
+
+/* Composer */
+.ctxbar { position: absolute; background: #f6f8fa; border-radius: 0 0 12px 12px; }
+.composer { position: absolute; background: #fff; border: 1px solid #768291; border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(31, 35, 40, .10), 0 2px 6px rgba(31, 35, 40, .05); }
+.cbar { position: absolute; display: flex; height: 28px; }
+.cbtn { position: relative; flex: none; height: 28px; padding: 0 8px; border-radius: 8px; font-size: 12px; line-height: 28px; color: #59636e; white-space: nowrap; }
+.cbtn.sq { width: 28px; padding: 0; }
+.send { position: absolute; width: 24px; height: 24px; border-radius: 50%; background: #929496; }
+.suggest { position: absolute; background: #fff; border: 1px solid #e1e6ea; border-radius: 12px; }
+.suggest .txt { white-space: normal; }
+
+/* Menu, model list and model card */
+.pop { position: absolute; background: #fff; border-radius: 12px; visibility: hidden;
+  box-shadow: 0 0 0 1px rgba(209, 217, 224, .75), 0 6px 12px -3px rgba(0, 0, 0, .04), 0 6px 18px rgba(0, 0, 0, .12); }
+.pop.card { border-radius: 8px; }
+/* The session info popover (assets/session-info.png). */
+.sinfo .srule { position: absolute; background: #ebeef1; }
+.sinfo .aside { color: #59636e; }
+.sinfo .mono { font-size: 13.5px; }
+.sinfo .sbar { position: absolute; border-radius: 3px; overflow: hidden; }
+.sinfo .sbar i { position: absolute; }
+.hl { position: absolute; background: #f2f3f4; border-radius: 8px; visibility: hidden; }
+.sep { position: absolute; height: 1px; background: #ebeef1; }
+.row { position: absolute; display: flex; justify-content: space-between; font-size: 12px; line-height: 18px; white-space: nowrap; }
+.row .k { color: #59636e; }
+.toggle { position: absolute; width: 30px; height: 16px; border-radius: 8px; background: #eaedf0; border: 1px solid #c9d1d9; }
+.toggle i { position: absolute; left: 1px; top: 1px; width: 12px; height: 12px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1px #b7bfc7; }
+
+#cursor { position: absolute; left: 0; top: 0; width: 14px; height: 21px; filter: drop-shadow(.5px 1px 1px rgba(0, 0, 0, .35)); }
+
+/* Session: header, timeline and composer (screenshots 03 and 08) */
+.shead { position: absolute; display: flex; align-items: baseline; white-space: nowrap; line-height: 20px; }
+.shead .t { font-size: 14px; font-weight: 600; color: #1f2328; }
+.shead .hs { font-size: 14px; color: #59636e; margin: 0 9.5px; }
+.shead .br { font: 13.5px Consolas, monospace; color: #59636e; }
+.hbtn { position: absolute; border: 1px solid #d1d9e0; border-radius: 7px; background: #f6f8fa; }
+.hbtn i { position: absolute; background: #d1d9e0; }
+.tlview { position: absolute; overflow: hidden; }
+.tlcontent { position: absolute; }
+.tlfade { position: absolute; background: linear-gradient(rgba(255, 255, 255, 0), #fff); }
+.trow { position: absolute; }
+.tt { overflow: hidden; text-overflow: ellipsis; }
+.tt .dot { color: #818b98; margin: 0 8px 0 7.4px; }
+.tt .d { color: #818b98; }
+.tt .code { font: 13.5px Consolas, monospace; color: #818b98; margin-left: 7.2px; }
+.tt .effort { color: #818b98; margin-left: 8px; }
+.tt .add { color: #1a7f37; margin-left: 8px; }
+.tt .del { color: #cf222e; margin-left: 8px; }
+.tt .add + .del { margin-left: 5px; }
+.nestline { position: absolute; background: #d1d9e0; }
+.bwrap { position: absolute; display: flex; justify-content: flex-end; }
+.bubble { max-width: 80%; padding: 10px 12px; border-radius: 13px; background: #f6f8fa; font-size: 14px; line-height: 21px; color: #1f2328; }
+.md { position: absolute; font-size: 14px; line-height: 21px; color: #1f2328; }
+.md > div + div { margin-top: 10px; }
+.md > .li + .li { margin-top: 4px; }
+.md .mh { font-size: 15px; line-height: 22px; font-weight: 600; }
+.md > div + .mh { margin-top: 16px; }
+.md .li { position: relative; padding-left: 22px; }
+.md .li .n { position: absolute; left: 4px; top: 0; color: #59636e; }
+.md b { font-weight: 600; }
+.md code { font-family: Consolas, monospace; font-size: 13px; padding: 2px 5px; border-radius: 6px; background: rgba(129, 139, 152, .12); }
+.eyebtn { position: absolute; border-radius: 50%; background: #eaeef2; }
+.send.stop { background: #25292e; }
+.stopsq { position: absolute; border-radius: 2px; background: #fff; }
+.sdot { position: absolute; border-radius: 50%; background: rgb(223, 230, 235); }
+.sdot.unread { background: #0969da; }
+
+/* Stills only: a typed prompt's caret and a Windows 11 notification */
+.caret { display: inline-block; width: 1px; height: 18px; margin-left: 1px; vertical-align: -4px; background: #1f2328; }
+.toast { position: absolute; right: 12px; bottom: 12px; width: 364px; padding: 46px 16px 14px; border-radius: 8px;
+  background: rgba(249, 249, 249, .88); backdrop-filter: blur(30px) saturate(1.4);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .08), 0 8px 16px rgba(0, 0, 0, .14);
+  font-family: "Segoe UI Variable Text", "Segoe UI", sans-serif; color: #1b1b1b; }
+.toast .glyph { position: absolute; width: 16px; font: 12px/18px "Segoe Fluent Icons"; text-align: center; }
+.toast .title { font-size: 14px; line-height: 20px; font-weight: 600; }
+.toast .body { font-size: 14px; line-height: 20px; color: #5f5f5f; }
+.toast .bar { position: relative; height: 3px; margin: 14px 0 7px; }
+.toast .bar::before { content: ''; position: absolute; left: 0; right: 0; top: 1px; height: 1px; background: #8a8a8a; }
+.toast .bar i { position: absolute; left: 0; top: 0; height: 3px; border-radius: 2px; background: #005fb8; }
+.toast .foot { display: flex; justify-content: space-between; font-size: 12px; line-height: 16px; color: #5f5f5f; }
+
+/* Automations: the page, its idea cards and the New automation dialog (screenshot 05) */
+.btn { position: absolute; border-radius: 6px; font-weight: 600; text-align: center; white-space: nowrap; }
+.btn.primary { background: #1f883d; color: #fff; box-shadow: inset 0 0 0 1px rgba(31, 35, 40, .15); }
+.btn.secondary { background: #f6f8fa; color: #1f2328; box-shadow: inset 0 0 0 1px #d1d9e0; }
+.rule { position: absolute; height: 1px; background: #e6eaee; }
+.idea { position: absolute; overflow: hidden; background: #fff; border-radius: 12px; box-shadow: inset 0 0 0 1px #d1d9e0; }
+.idea .d { position: absolute; left: 13px; right: 13px; font-size: 13px; line-height: 19.5px; color: #59636e;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.badge { position: absolute; height: 20px; padding: 0 6px; border-radius: 6px; background: #ddf4ff; color: #0969da; font-size: 12px; line-height: 20px; white-space: nowrap; }
+.search { position: absolute; border-radius: 6px; background: #fff; box-shadow: inset 0 0 0 1px #d1d9e0; }
+.thumb { position: absolute; border-radius: 3px; background: #c4ccd4; }
+.backdrop { position: absolute; background: rgba(200, 209, 218, .4); }
+.dialog { position: absolute; background: #fff; border-radius: 12px; transform-origin: 50% 50%;
+  box-shadow: 0 0 0 1px rgba(209, 217, 224, .5), 0 16px 48px rgba(37, 41, 46, .25); }
+.input { position: absolute; border-radius: 6px; background: #fff; box-shadow: inset 0 0 0 1px #d1d9e0; }
+.input.focus { box-shadow: inset 0 0 0 2px #0969da; }
+.select { position: absolute; border-radius: 6px; background: #fff; box-shadow: inset 0 0 0 1px #d1d9e0; }
+.switch { position: absolute; border-radius: 10px; background: #e6eaef; box-shadow: inset 0 0 0 1px #d6dde4; }
+.switch i { position: absolute; border-radius: 7px; background: #fff; box-shadow: 0 0 0 1px #c3cad2; }
+.composer.idle { border-color: #d1d9e0; box-shadow: none; }
+.tray { position: absolute; background: #f6f8fa; border-radius: 0 0 12px 12px; }
+.ring { position: absolute; border-radius: 50%; background: #fff; box-shadow: inset 0 0 0 1.5px #e3e8ec; }
+.split { position: absolute; top: 0; width: 1px; height: 100%; background: rgba(31, 35, 40, .15); }
+#ibeam { position: absolute; left: 0; top: 0; width: 9px; height: 18px; visibility: hidden; }
+
+/* Settings: the dialog's nav, the General page and the Experimental list
+   (screenshots 07 and 10). A switch is Primer's small one: its track is a
+   wide gradient that slides from grey to blue, and its thumb moves 12px. */
+.snav { position: absolute; border-radius: 6px; }
+.sfield { position: absolute; border-radius: 6px; background: #fff; box-shadow: inset 0 0 0 1px #d1d9e0; }
+.sfield.focus { box-shadow: 0 0 0 1px #0969da, inset 0 0 0 1px #0969da; }
+.pbadge { position: absolute; border-radius: 11px;
+  background: linear-gradient(135deg, #e8875f, #c9a24a 25%, #6fbf73 45%, #3fb3b8 60%, #4a9cf0 75%, #a777f2 90%, #d687e0); }
+.pbadge i { position: absolute; left: 1px; top: 1px; right: 1px; bottom: 1px; border-radius: 10px; background: #fff; }
+.sw { position: relative; flex: none; width: 40px; height: 20px; margin-top: 2.6px; border-radius: 10px;
+  background: linear-gradient(to right, #0969da 35%, #e6eaef 65%) 100% 0 / 160px 100% no-repeat; box-shadow: inset 0 0 0 1px #d6dde4; }
+.sw i { position: absolute; left: 2px; top: 2px; width: 24px; height: 16px; border-radius: 8px; background: #fff; border: 1px solid #c3cad2; }
+.sbtn { position: absolute; height: 28px; padding: 0 12px; border-radius: 6px; background: #f6f8fa; box-shadow: inset 0 0 0 1px #d1d9e0;
+  font-size: 12px; line-height: 28px; font-weight: 600; color: #1f2328; white-space: nowrap; }
+.sbox { position: absolute; border-radius: 6px; background: #f6f8fa; }
+.vcard { position: absolute; border-radius: 6px; box-shadow: inset 0 0 0 1px #d8dee4; }
+.vicon { position: absolute; border-radius: 12px; background: #f6f8fa; box-shadow: inset 0 0 0 1px #d8dee4; }
+.mono { font-family: Consolas, monospace; }
+.xlist { position: absolute; display: flex; flex-direction: column; gap: 24px; }
+.xgroup h2 { margin: 0 0 8px; font-size: 13px; line-height: 20px; font-weight: 600; color: #1f2328; }
+.xrows { display: flex; flex-direction: column; gap: 12px; }
+.xrow { display: flex; align-items: center; gap: 16px; }
+.xrow .tx { flex: 1; min-width: 0; font-size: 13px; line-height: 20px; color: #1f2328; }
+.xrow .tx p { margin: 0; color: #59636e; }
+.gsq { position: absolute; border-radius: 6px; }
+
+/* Windows 11 shell, light theme: the auto-hidden taskbar and Quick Settings.
+   Fills are WinUI's control tokens; glyphs are Segoe Fluent Icons. */
+.wg { position: absolute; font: 16px/16px "Segoe Fluent Icons"; text-align: center; color: #1b1b1b; }
+.taskbar { position: absolute; visibility: hidden; background: rgba(238, 242, 248, .84); backdrop-filter: blur(40px) saturate(1.6);
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, .07); font-family: "Segoe UI Variable Text", "Segoe UI", sans-serif; color: #1b1b1b; }
+.tbtn { position: absolute; border-radius: 4px; }
+.tbtn.active, .tbtn.hover { background: rgba(255, 255, 255, .7); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .05); }
+.tbtn.press { background: rgba(255, 255, 255, .45); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .04); }
+.tbtn .pill { position: absolute; border-radius: 2px; background: #005fb8; }
+.tbtn .pill.idle { background: #868686; }
+.clock { position: absolute; font-size: 12px; line-height: 16px; text-align: right; white-space: nowrap; }
+.qs { position: absolute; visibility: hidden; overflow: hidden; border-radius: 8px; background: rgba(246, 246, 246, .86);
+  backdrop-filter: blur(30px) saturate(1.3); box-shadow: 0 0 0 1px rgba(0, 0, 0, .1), 0 8px 16px rgba(0, 0, 0, .14);
+  font-family: "Segoe UI Variable Text", "Segoe UI", sans-serif; color: #1b1b1b; }
+.qtile { position: absolute; border-radius: 4px; background: rgba(255, 255, 255, .7);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .0578), inset 0 -1px 0 rgba(0, 0, 0, .1); }
+.qtile.hover { background: rgba(249, 249, 249, .5); }
+.qtile.press { background: rgba(249, 249, 249, .3); }
+.qacc { position: absolute; inset: 0; border-radius: 4px; background: #005fb8; opacity: 0;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08), inset 0 -1px 0 rgba(0, 0, 0, .25); }
+.qseam { position: absolute; background: rgba(0, 0, 0, .0578); }
+.qtile.lit .qseam { background: rgba(0, 0, 0, .16); }
+.qlabel { position: absolute; font-size: 12px; line-height: 16px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qtrack { position: absolute; border-radius: 2px; background: rgba(0, 0, 0, .4458); }
+.qtrack i { position: absolute; border-radius: 2px; background: #005fb8; }
+.qthumb { position: absolute; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .0578), 0 1px 1px rgba(0, 0, 0, .14); }
+.qthumb::after { content: ''; position: absolute; left: 4px; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: #005fb8; }
+.qfoot { position: absolute; background: rgba(0, 0, 0, .028); box-shadow: inset 0 1px 0 rgba(0, 0, 0, .06); }
+.qpct { position: absolute; font-size: 12px; line-height: 18px; }
+
+/* Motion graphics (graphics.mjs): GitHub's dark canvas, Mona Sans, a little
+   film grain so the dark gradients don't band, and a vignette. */
+body.board, body.board #stage { background: #0d1117; }
+body.board #wallpaper { display: none; }
+.gfx { position: absolute; white-space: nowrap; font-family: "Mona Sans", "Segoe UI", sans-serif; color: #e6edf3;
+  font-kerning: normal; }
+.gfx-svg { position: absolute; left: 0; top: 0; overflow: visible; }
+.lift { position: absolute; pointer-events: none; }
+.vignette { position: absolute; pointer-events: none; }
+.grain { position: absolute; pointer-events: none; mix-blend-mode: overlay; }
+.reveal { position: absolute; overflow: hidden; }
+.reveal > .gfx { position: relative; display: block; }

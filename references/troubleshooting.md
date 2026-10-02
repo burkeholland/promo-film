@@ -1,0 +1,61 @@
+# Troubleshooting
+
+## Setup
+
+| Symptom | Fix |
+| --- | --- |
+| `Microsoft Edge is required` | The renderer drives the installed Edge. On another system, point `findEdge()` in `lib/edge.mjs` at a Chromium browser. |
+| `No GPU (...); using the CPU` from transcribe | Normal. It takes about as long as the recording, once per take: the result is cached in `transcript/`. `--model small.en` is quicker and rougher. |
+| `ModuleNotFoundError: faster_whisper` | `pip install faster-whisper numpy` |
+| A name is spelled wrong in the transcript | Add it to `transcript/vocabulary.txt` (helps Whisper hear it) or `transcript/fixes.txt` (`heard => said`), then run transcribe again. Cues match the fixed spelling. |
+
+## Rendering
+
+| Symptom | Fix |
+| --- | --- |
+| A film does not re-render after a change | The cache follows imports from the scene file. A file loaded another way (a new asset folder, a `fetch`) is not seen: `--force`. If the renderer itself changed, bump `RENDER_VERSION` in `render.mjs`. |
+| Every film re-renders after a small change | The change was in a file every scene imports (`kit.mjs`, `app.mjs`, `words.mjs`). That is correct. Use `--draft` while iterating. |
+| `--scale ... goes with --clip` | Films for the edit are always 1920 x 1080. Other sizes are for standalone clips. |
+| A clip will not open ("encoded in ap4h format") | That is ProRes. Windows' player cannot play it. Render with `--clip` (H.264), or convert: `ffmpeg -i in.mov -c:v libx264 -crf 14 -pix_fmt yuv420p out.mp4`. |
+| A film in `build/` will not play in some players | Films for the edit are lossless on purpose. Only the composed video and `--clip` files are meant to be watched. |
+| First frames show a missing image | The scene did not wait: `await loadAssets([...])` and `await imagesDecoded()` before returning. |
+| A sheet shows the right state but the video looks wrong | Motion blur: a fast move needs a `fast: [[start, end]]` range. Or render that stretch alone: `--from 3 --to 4`. |
+
+## Composing
+
+| Symptom | Fix |
+| --- | --- |
+| `... is open in another app` | The last cut is open in a player. Close it, or `node compose.mjs --tag v2`. |
+| `has N frames, but the edit needs M` | A cut moved. `node render.mjs --all` (with `--draft` for a draft cut). |
+| `... is not on a frame of the recording` | A cut time was typed by hand. Use `cut('words')` or `frame(n)`. |
+| Colors shift at every cut to the camera | The recording's color tag. compose converts BT.601 recordings to match the films; check the tag with `ffprobe -show_entries stream=color_space`. |
+| The face cuts to someone's old B-roll | The recording is a rough cut with its own B-roll inside. Find the true face shots by brightness: `ffmpeg -i rec.mp4 -vf scale=192:108,signalstats,metadata=print:key=lavfi.signalstats.YAVG:file=yavg.txt -f null -`. Screen footage is much brighter than a face. Keep camera parts inside the face shots. |
+| Voice too quiet or loud | compose measures the voice and brings it to -14 LUFS. Set `export const LOUDNESS = -16` in `film/edit.mjs` to change the target. |
+
+## Sound
+
+| Symptom | Fix |
+| --- | --- |
+| "A word is cut off" after a splice or a cut | The cut is inside the word: at a consonant's gap, or before a quiet ending (M, N, NG, L). `python tools/wave.py <file> <from> <to>` over one second, read the spectrogram, move the cut to the word's real end. See `references/audio.md`. |
+| "I can hear the start of the old word" | The stretch that was silenced starts too late. Same fix, the other direction. |
+| A pause sounds too long after replaced words | The new words are shorter. Leave the leftover silence out in the edit (end the part early, start the next at the next word). |
+| "It does not sound cleaned up" | The cut was turned up into the limiter and then cleaned, or cleaned and then turned up into a limiter. Clean the recording, then one gain: set `LOUDNESS` to the value compose prints for no limiting. |
+| Whisper reads the right words but the person hears a mistake | Whisper fills in what it expects. Trust the runs and the spectrogram, and ask the person to listen at the times you changed. |
+| The lips drift in a camera part after new sound was laid in | The new sound is offset from the take. Measure it to the millisecond (`lag()` in `examples/local-models/audio/v6audio.py`), one offset for each side of a change. `tools/align.py` gives it to 10 ms. |
+| `wave.py`: `No module named matplotlib` | `pip install matplotlib`, or `--no-picture` for the runs alone. |
+
+## Preview
+
+| Symptom | Fix |
+| --- | --- |
+| Red text over the picture | That is the scene's own error, the same one the renderer would print. Fix it and save: the page reloads. |
+| No sound | Browsers hold sound until the page is clicked once. Click Play. |
+| A short freeze at some cuts | The edit jumps in the recording there and the browser has to seek. The rendered video does not freeze. |
+| The preview looks sharper or softer than the render | The preview has no motion blur and is scaled by the browser. Judge timing and framing there, sharpness from a still. |
+
+## ffmpeg on this machine
+
+- `-vsync` is gone: use `-fps_mode passthrough` or `-fps_mode cfr`.
+- `drawtext` fails (no fontconfig). Label pictures with a contact sheet (`--sheet`) instead.
+- GIF: `-vf "fps=15,scale=960:-1:flags=lanczos,split[a][b];[a]palettegen[p];[b][p]paletteuse"`.
+- Loudness of any file: `ffmpeg -i file -af ebur128=peak=true -f null -` and read the summary.
