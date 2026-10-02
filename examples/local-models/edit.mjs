@@ -76,7 +76,7 @@ export const PARTS = [
   { film: 'plan-handoff', from: frame(2694), to: frame(2998) },
   // "automations in GitHub Copilot. These are tasks that run on a schedule in
   // the background. Local models work incredibly here," The automation is
-  // made with MAI-Code-1.1-Flash and the cut comes on the click on Create.
+  // made with MAI Code 1.1 Flash and the cut comes on the click on Create.
   { film: 'automations', from: frame(2998), to: frame(3227) },
   // "able to work on very long-running tasks and costing you exactly zero AI
   // credits to use. You can also go completely" Its run goes for hours, the
@@ -94,7 +94,7 @@ export const PARTS = [
   // it under Experimental Settings. And capable devices"
   { film: 'settings-hydra', from: frame(3871), to: frame(4105) },
   // "will be able to use intelligent local model routing very soon, including
-  // MAI Code 1.1 Flash." The picker, with MAI-Code-1.1-Flash among the local
+  // MAI Code 1.1 Flash." The picker, with MAI Code 1.1 Flash among the local
   // models. It holds until the take is back on Burke. 8 frames of the
   // silence after the name are left out.
   { film: 'aion-end', from: frame(4105), to: frame(4343) },

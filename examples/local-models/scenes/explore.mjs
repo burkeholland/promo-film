@@ -3,7 +3,7 @@
 // how to run a project." Cuts in on the whole app as a new session opens on
 // "How do I start this project?", and the camera creeps, then pushes in on the
 // question. On "offload" Copilot hands the digging to an Explore agent, which
-// switches to MAI-Code-1.1-Flash on "local model" and reads its way through
+// switches to MAI Code 1.1 Flash on "local model" and reads its way through
 // the repo on "simple tasks, such as explaining". On "how a codebase works"
 // the camera tilts down to the answer as it streams in on "how to run a
 // project", settling as Copilot finishes.

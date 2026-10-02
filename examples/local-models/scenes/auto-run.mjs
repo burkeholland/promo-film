@@ -1,6 +1,6 @@
 // "...able to work on very long-running tasks and costing you exactly zero AI
 // credits to use. You can also go completely"
-// The PR babysitter automation is running on MAI-Code-1.1-Flash. On "very
+// The PR babysitter automation is running on MAI Code 1.1 Flash. On "very
 // long-running tasks" its work races by and the working clock runs up to
 // 7h 48m. On "costing" the hand clicks the session's name, the session info
 // pops up, and the camera pushes in so "Session spend: 0 AI credits" is

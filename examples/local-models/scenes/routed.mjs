@@ -2,7 +2,7 @@
 // myriad of scenarios where local models are perfect." Cuts in on the last
 // letters of a prompt, with Auto on. The hand goes to Send and clicks it on
 // "use", and the app opens the new session. On "auto-routing" the timeline
-// notes the switch to MAI-Code-1.1-Flash and the camera eases in on that line
+// notes the switch to MAI Code 1.1 Flash and the camera eases in on that line
 // while the local model gets to work under it through "a myriad of
 // scenarios": it finds the date helpers, reads them and writes their tests.
 import { bezier, clamp } from '../motion.mjs';

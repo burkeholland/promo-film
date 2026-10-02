@@ -36,7 +36,7 @@ export const MODELS = [OPUS, ASTRA, FABLE, SOL, SONNET, GEMINI, GROK, KIMI];
 // HydraFusion and Aion Flash aren't in the app yet, so their rows follow the
 // user's description. A local model costs no AI credits.
 export const HYDRA = { name: 'HydraFusion (Research Preview)', logo: 'github' };
-export const AION = { name: 'MAI-Code-1.1-Flash', logo: 'microsoft', context: '128K', reasoning: '3 levels', input: '0', cached: '0', output: '0' };
+export const AION = { name: 'MAI Code 1.1 Flash', logo: 'microsoft', context: '128K', reasoning: '3 levels', input: '0', cached: '0', output: '0' };
 export const LOCAL = [
   { name: 'gemma4:26b', suffix: '(Ollama (local))', logo: 'ollama', context: '128K', reasoning: 'None', input: '0', cached: '0', output: '0' },
   { name: 'qwen3.6:35b-a3b', suffix: '(Ollama (local))', logo: 'ollama', context: '256K', reasoning: '2 levels', input: '0', cached: '0', output: '0' },

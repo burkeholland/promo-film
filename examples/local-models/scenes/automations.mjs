@@ -9,7 +9,7 @@
 // project. Just before "background" the chip opens the picker with Auto on,
 // and it holds so the levels can be seen. Auto goes off ahead of "Local", the
 // list of models opens on "models", and on "incredibly" the pointer picks
-// MAI-Code-1.1-Flash. The chip shows its name and the hand goes straight to
+// MAI Code 1.1 Flash. The chip shows its name and the hand goes straight to
 // Create and clicks it just before the cut.
 import { clamp, lerp, out, span } from '../motion.mjs';
 import { clock } from '../timeline.mjs';
@@ -69,7 +69,7 @@ const CUE = {
   toggleClick: WORDS.local - .25,
   // A beat on the rows that take the levels' place, then down to the Model
   // row, so the list of models opens on "models". The hand waits there while
-  // the list is read, and goes onto MAI-Code-1.1-Flash in time to pick it on
+  // the list is read, and goes onto MAI Code 1.1 Flash in time to pick it on
   // "incredibly".
   toModel: [.3, .34],
   toAion: .45,

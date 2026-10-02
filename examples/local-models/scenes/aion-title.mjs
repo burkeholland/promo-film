@@ -34,8 +34,8 @@ const LOGO = 2 * SQUARE + GAP;
 const SQUARES = [['#f1511b', 0, 0], ['#80cc28', 1, 0], ['#00adef', 0, 1], ['#fbbc09', 1, 1]];
 // [text, cue, weight, color, lit color]. The name comes up a little dim, part
 // by part as it is said, and the light that runs across it in the pause after
-// "Flash" leaves it lit. The hyphens ride with the part before them.
-const NAME = [['MAI-', 'mai', 720, '#c3cbd4', '#eef3f8'], ['Code-', 'code', 720, '#c3cbd4', '#eef3f8'], ['1.1-', 'one', 720, '#c3cbd4', '#eef3f8'], ['Flash', 'flash', 720, '#c3cbd4', '#eef3f8']];
+// "Flash" leaves it lit. The name is written with spaces.
+const NAME = [['MAI', 'mai', 720, '#c3cbd4', '#eef3f8'], ['Code', 'code', 720, '#c3cbd4', '#eef3f8'], ['1.1', 'one', 720, '#c3cbd4', '#eef3f8'], ['Flash', 'flash', 720, '#c3cbd4', '#eef3f8']];
 const LINE = [
   ['A', 'a', 400, DIM], ['local', 'local', 600, INK], ['model', 'model', 600, INK], ['for', 'for', 400, DIM],
   ['capable', 'capable', 400, DIM], ['devices', 'devices', 400, DIM],
@@ -82,7 +82,7 @@ export default async function aionTitle() {
   const card = h('div', 'layer', stage);
 
   // ------------------------------------------------------------ type
-  const name = row(card, NAME, { size: 100, line: 1.2, gap: 0, track: -.022, stretch: 104 });
+  const name = row(card, NAME, { size: 100, line: 1.2, gap: .25, track: -.022, stretch: 104 });
   name.resize(100 * NAME_W / rect(name.node).w);
   const nameSize = parseFloat(name.node.style.fontSize);
   // The name is painted with a gradient so the sheen can run across it. The

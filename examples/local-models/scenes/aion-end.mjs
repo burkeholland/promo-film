@@ -2,7 +2,7 @@
 // including Microsoft Aion Flash 1.0." Cuts in close on a new session with
 // Auto on. The hand opens the picker on "intelligent", so Auto's levels show,
 // and rests on Efficiency on "routing". On "very soon" it turns Auto off, goes
-// to the Model row, and the list opens with MAI-Code-1.1-Flash among
+// to the Model row, and the list opens with MAI Code 1.1 Flash among
 // Copilot's models, marked Local. The hand gets onto its row on "Microsoft",
 // its details card comes up for "Aion Flash 1.0", and the camera pushes in on
 // the row and the card through to the cut.
@@ -42,7 +42,7 @@ const CUE = {
   autoOff: WORDS.very + .05,
   // Down to the Model row, and the list opens.
   toModel: .34,
-  // Into the list, onto MAI-Code-1.1-Flash on "Microsoft".
+  // Into the list, onto MAI Code 1.1 Flash on "Microsoft".
   toAion: .62,
   aionDrift: [6.3, .7],
   // The push in on the row and its card.

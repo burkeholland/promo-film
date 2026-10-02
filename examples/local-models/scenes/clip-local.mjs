@@ -1,7 +1,7 @@
 // A standalone clip, outside the edit: the local model at work, start to end.
 // The pointer opens the model picker and switches Auto on, so the chip reads
 // "Auto · Efficiency". Then a prompt goes in, Copilot routes it to
-// MAI-Code-1.1-Flash on the device, works through it and replies. Timed for
+// MAI Code 1.1 Flash on the device, works through it and replies. Timed for
 // the eye, not a voiceover.
 import { bezier, clamp } from '../motion.mjs';
 import { AION, DH, DW, OPUS, WIN, imagesDecoded, inside, loadAssets, r3, rect } from '../kit.mjs';

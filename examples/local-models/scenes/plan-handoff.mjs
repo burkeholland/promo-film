@@ -3,7 +3,7 @@
 // Cuts in on the new session page with a big job typed in Autopilot, Auto on,
 // and the camera creeping in. Enter opens the session. On "large frontier
 // models" Auto plans with GPT-6 Astra, and the plan streams in through "such
-// as Astra". On "hand off" it switches to MAI-Code-1.1-Flash to build it while
+// as Astra". On "hand off" it switches to MAI Code 1.1 Flash to build it while
 // the camera pushes down to the working row above the composer. "While you
 // sleep" is a time-lapse: the work races by and the working clock runs up to
 // 6h 41m. Back at normal speed, all the tests pass and the local model starts
