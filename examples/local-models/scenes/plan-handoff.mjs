@@ -1,7 +1,9 @@
 // "You can also plan with large frontier models, such as Astra, and then hand
 // off to a local model to implement while you sleep. And users love..."
-// Cuts in on the new session page with a big job typed in Autopilot, Auto on,
-// and the camera creeping in. Enter opens the session. On "large frontier
+// Cuts in on a session that has just been sent a big job in Autopilot, Auto
+// on: the prompt is already in the thread and Copilot is working, with the
+// camera creeping in. (It used to open on the new session page for half a
+// second, which read as a second, fast cut.) On "large frontier
 // models" Auto plans with GPT-6 Astra, and the plan streams in through "such
 // as Astra". On "hand off" it switches to MAI Code 1.1 Flash to build it while
 // the camera pushes down to the working row above the composer. "While you
@@ -12,7 +14,7 @@
 import { bezier, clamp, inOut, lerp, span } from '../motion.mjs';
 import { clock } from '../timeline.mjs';
 import { AION, ASTRA, DH, DW, WIN, imagesDecoded, inside, loadAssets, px, r3, rect } from '../kit.mjs';
-import { NAV, PROJECTS, buildCursor, buildHome, buildStage, buildWindow, film, navRect, pointAt, showText } from '../app.mjs';
+import { NAV, PROJECTS, buildCursor, buildStage, buildWindow, film, navRect, pointAt, showText } from '../app.mjs';
 import { caretOn, makePath } from '../input.mjs';
 import { glide, inWin, keep, look, makeCamera } from '../camera.mjs';
 import { COMPOSER, SESSION_ICONS, buildSession, spinner } from '../session.mjs';
@@ -74,8 +76,9 @@ const READS = [
 const NIGHT_LONG = 6 * 3600 + 41 * 60 + 17;
 
 const CUE = {
-  // The job is typed when the cut lands, and Enter goes in a beat later.
-  open: .5,
+  // The job was sent just before the cut, so the thread is already there and
+  // its rows have finished fading in.
+  open: -.6,
   // Auto picks Astra to plan on "frontier"; it thinks, then the plan streams
   // in through "such as Astra", and the session gets its name.
   astra: WORDS.frontier - .06,
@@ -117,7 +120,6 @@ export default async function planHandoff() {
   const stage = buildStage();
   const projects = [...PROJECTS, ['folder', PROJECT, -1.92]];
   const { ui, navHover, session: side, showSession } = buildWindow(stage, { session: { project: PROJECT, name: 'New session' }, projects });
-  const home = buildHome(ui, { chip: 'Auto · Efficiency', project: PROJECT, branch: 'main', mode: 'Autopilot' });
   const S = buildSession(ui, { chip: 'Auto · Efficiency', branch: `${PROJECT}/main`, mode: 'Autopilot' });
   const cursor = buildCursor(stage);
   side.dot.style.visibility = 'hidden';
@@ -214,11 +216,7 @@ export default async function planHandoff() {
   const pose = t => {
     t = clamp(t, 0, DURATION);
     film(stage, camera(t));
-    const opened = t >= CUE.open;
-    home.page.style.visibility = opened ? 'hidden' : 'inherit';
-    S.page.style.visibility = opened ? 'inherit' : 'hidden';
-    showSession(opened);
-    showText(home, PROMPT, !opened && caretOn(t, -.3), home.send);
+    showSession(true);
     // The session: the composer keeps focus, empty, while Copilot works.
     showText(S.composer, '', caretOn(t, CUE.open), null);
     S.composer.running(true);
