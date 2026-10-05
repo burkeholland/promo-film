@@ -15,7 +15,7 @@ import { COL, SESSION_ICONS, buildSession, spinner } from '../session.mjs';
 
 const PROMPT = 'Write unit tests for the date helpers';
 const TITLE = 'Unit tests for date helpers';
-const REPLY = 'Added 14 tests to `src/utils/date.test.ts` for `formatDate`, `parseDate` and `addDays`, including leap years and month ends. All 14 pass, and none of it left this device.';
+const REPLY = 'Added 14 tests to `src/utils/date.test.ts` for `formatDate`, `parseDate` and `addDays`, including leap years and month ends. All 14 pass.';
 
 const CUE = {
   // A reach for the chip, the menu opens, and Auto goes on.
