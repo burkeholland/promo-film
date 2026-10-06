@@ -48,6 +48,7 @@ or the audio changes. Speed of each review round matters more than polish on any
 2. Screenshots of every screen you talk about, at 100% zoom, plus one short screen recording of
    anything that moves (menus, hovers). The recording is where hover colors and timings come from.
 3. Anything that must be different from the screenshots: names, model lists, things to hide.
+   The app is shown running GPT-5.6 Sol unless you name another model.
 
 **Say** what you want in plain words. These all work:
 
@@ -91,6 +92,10 @@ Each of these cost a round of review, or a day, the first time.
    the app should be moving (typing, a menu, rows arriving, a spinner).
 5. **Names are data.** A product or model name lives in one constant in `film/kit.mjs`. Internal
    or unreleased things in the screenshots (staff labels, internal nav items) come out at the kit.
+   The model the app is on is one of those constants, `DEFAULT_MODEL`, and it is GPT-5.6 Sol:
+   the composer's chip, the picker's Model row and the checked row in the list all follow it.
+   Show another model only when the person names one (a model in their screenshots does not
+   count), and change it there, never in a scene.
 6. **Ten seconds first.** Build the opening ten seconds, show it, and only then build the rest.
    The first look decides whether the direction is right.
 7. **Say what you made up.** Every screen, number, name or flow that did not come from the person
@@ -198,6 +203,7 @@ says so: use `--tag v2`.
 | --- | --- |
 | "New audio" / a new take | Replace the recording, `python tools/transcribe.py`, open the preview. Cues and cuts that name words have moved already. Each one that fails names the words that changed. Then draft, then final. |
 | "They renamed X" | Change the constant in `film/kit.mjs`, grep for the old name in scenes (title cards and toasts may spell it out), `render --all`, compose. Check one still of the picker, the chat and each title card. |
+| "Show it on another model" / "the chip should be on X" | Set `DEFAULT_MODEL` in `film/kit.mjs` to that model's constant. A new model needs a constant with its card numbers and a place in `MODELS`. The chip, the picker's Model and Context window rows and the check mark follow. `render --all`, then one still of the home page and one of the open list. |
 | "A clip of just this part" | `node render.mjs --scene <name> --clip` (add `--scale 2.5` for 4K). For a flow that is not one scene, write a standalone scene like `demo.mjs`: no clock, its own times. |
 | "As a GIF" | `ffmpeg -i clip.mp4 -vf "fps=15,scale=960:-1:flags=lanczos,split[a][b];[a]palettegen[p];[b][p]paletteuse" out.gif` |
 | "Hide this" / "that is internal" | Remove it in the kit module, not the scene, so it is gone everywhere. |

@@ -19,6 +19,8 @@ against that recording. In a new project, change the clock's name and the words.
 ## `local-models/`
 
 A finished video: 2:33, 14 films and 4 camera parts, about GitHub Copilot's local model routing.
+The video opened with the app on Claude Opus 5.5. The scenes here open on the kit's
+`DEFAULT_MODEL` (GPT-5.6 Sol), as every new scene does.
 
 - `scenes/`: all 16 scenes. `references/kit.md` lists which screen is in which.
 - `edit.mjs`: the full edit, including three places where a stretch of the take is left out

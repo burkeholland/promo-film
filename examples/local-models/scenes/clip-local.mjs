@@ -4,7 +4,7 @@
 // MAI Code 1.1 Flash on the device, works through it and replies. Timed for
 // the eye, not a voiceover.
 import { bezier, clamp } from '../motion.mjs';
-import { AION, DH, DW, OPUS, WIN, imagesDecoded, inside, loadAssets, r3, rect } from '../kit.mjs';
+import { AION, DEFAULT_CHIP, DH, DW, WIN, imagesDecoded, inside, loadAssets, r3, rect } from '../kit.mjs';
 import {
   MENU, autoRowAt, autoState, buildCard, buildCursor, buildHome, buildList, buildMenu, buildStage, buildWindow, film,
   layoutPicker, menuRowAt, placeMenuHl, pointAt, popInOut, setAuto, showText,
@@ -58,14 +58,15 @@ export default async function clipLocal() {
   await loadAssets(SESSION_ICONS);
   const stage = buildStage();
   const { ui, pops, session: side, showSession } = buildWindow(stage, { session: { project: 'local-auto', name: 'New session' } });
-  const home = buildHome(ui, { chip: `${OPUS.name} · Medium` });
+  // The chip, the menu and the list's check mark start on kit.mjs's DEFAULT_MODEL.
+  const home = buildHome(ui);
   const S = buildSession(ui, { chip: 'Auto · Efficiency' });
   const cursor = buildCursor(stage);
-  const picker = buildMenu(pops, OPUS.name);
+  const picker = buildMenu(pops);
   const { menu, menuHl } = picker;
   // The list and its card are only built so the picker lays out as in the
   // app; they never open here.
-  const { fly, rows } = buildList(pops, [], OPUS);
+  const { fly, rows } = buildList(pops, []);
   const { card } = buildCard(pops);
   fly.style.visibility = card.style.visibility = 'hidden';
   side.dot.style.visibility = 'hidden';
@@ -160,7 +161,7 @@ export default async function clipLocal() {
 
     // The picker.
     const state = auto(t);
-    const text = state.on ? 'Auto · Efficiency' : `${OPUS.name} · Medium`;
+    const text = state.on ? 'Auto · Efficiency' : DEFAULT_CHIP;
     if (home.chip.textContent !== text) home.chip.textContent = text;
     const overChip = inside([p[0] - WIN.x, p[1] - WIN.y], L.chip);
     const pressed = path.down(t) && Math.abs(path.lastClick(t) - CUE.chip) < 1e-6;

@@ -8,7 +8,7 @@
 // the row and the card through to the cut.
 import { clamp } from '../motion.mjs';
 import { clock } from '../timeline.mjs';
-import { AION, COPILOT, DH, DW, FG, HYDRA, LOCAL, MODELS, MUTED, OPUS, OTHERS, W, WIN, imagesDecoded, inside, loadAssets, mix, px, r3, rect } from '../kit.mjs';
+import { AION, COPILOT, DH, DW, FG, HYDRA, LOCAL, MODELS, MUTED, OTHERS, W, WIN, imagesDecoded, inside, loadAssets, mix, px, r3, rect } from '../kit.mjs';
 import {
   CARD, LEVELS, MENU_ROWS, MODEL_ROW, autoRowAt, autoState, buildCard, buildCursor, buildHome, buildList, buildMenu, buildStage,
   buildWindow, film, layoutPicker, listRowAt, menuRowAt, placeListHl, placeMenuHl, pointAt, popIn, popInOut, setAuto,
@@ -169,11 +169,11 @@ export default async function aionEnd() {
   await loadAssets();
   const stage = buildStage();
   const { ui, pops } = buildWindow(stage);
-  const home = buildHome(ui, { chip: `${OPUS.name} · Medium` });
+  const home = buildHome(ui);
   const cursor = buildCursor(stage);
-  const picker = buildMenu(pops, OPUS.name);
+  const picker = buildMenu(pops);
   const { menu, menuHl } = picker;
-  const { fly, flyHl, rows } = buildList(pops, SECTIONS, OPUS);
+  const { fly, flyHl, rows } = buildList(pops, SECTIONS);
   const { card, show } = buildCard(pops);
   await imagesDecoded();
 

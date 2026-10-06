@@ -3,7 +3,7 @@
 // works, and the composer stays at the bottom. Measured from screenshots 03
 // and 08 (assets/screens), in window px of our 1372 x 739 window.
 import { clamp, random, span } from './motion.mjs';
-import { FG, H, MUTED, NS, W, h, icon, label, logo, place, px } from './kit.mjs';
+import { DEFAULT_CHIP, FG, H, MUTED, NS, W, h, icon, label, logo, place, px } from './kit.mjs';
 import { buildField } from './app.mjs';
 
 export const DETAIL = '#818b98';
@@ -356,7 +356,7 @@ function makeTimeline(page, bottom) {
 }
 
 // ---------------------------------------------------------------- page
-export function buildSession(ui, { title = 'New session', branch = 'local-auto/master', chip = 'Auto · Efficiency', mode = 'Interactive', placeholder = SESSION_PLACEHOLDER, prompt = '' } = {}) {
+export function buildSession(ui, { title = 'New session', branch = 'local-auto/master', chip = DEFAULT_CHIP, mode = 'Interactive', placeholder = SESSION_PLACEHOLDER, prompt = '' } = {}) {
   const page = h('div', 'layer', ui);
   const header = buildHeader(page, { title, branch });
   const composer = buildComposer(page, { chip, placeholder, prompt, mode });

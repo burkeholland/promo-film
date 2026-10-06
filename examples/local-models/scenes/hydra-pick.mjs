@@ -6,7 +6,7 @@
 // The chip takes its name and a prompt is typed as the sentence finishes.
 import { clamp } from '../motion.mjs';
 import { clock } from '../timeline.mjs';
-import { COPILOT, FG, HYDRA, MODELS, MUTED, OPUS, WIN, imagesDecoded, inside, loadAssets, mix, r3, rect } from '../kit.mjs';
+import { COPILOT, FG, HYDRA, MODELS, MUTED, WIN, imagesDecoded, inside, loadAssets, mix, r3, rect } from '../kit.mjs';
 import {
   MODEL_ROW, buildCard, buildCursor, buildHome, buildList, buildMenu, buildStage, buildWindow, film, layoutPicker,
   listRowAt, menuRowAt, placeListHl, placeMenuHl, pointAt, popInOut, showText,
@@ -132,10 +132,10 @@ export default async function hydraPick() {
   await loadAssets();
   const stage = buildStage();
   const { ui, pops } = buildWindow(stage);
-  const home = buildHome(ui, { chip: `${OPUS.name} · Medium` });
+  const home = buildHome(ui);
   const cursor = buildCursor(stage);
-  const { menu, menuHl } = buildMenu(pops, OPUS.name);
-  const { fly, flyHl, rows } = buildList(pops, SECTIONS, OPUS);
+  const { menu, menuHl } = buildMenu(pops);
+  const { fly, flyHl, rows } = buildList(pops, SECTIONS);
   const { card } = buildCard(pops);
   await imagesDecoded();
 

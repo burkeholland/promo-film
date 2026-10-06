@@ -32,7 +32,7 @@ paced, where the camera goes), not as screens.
 
 | Module | Draws |
 | --- | --- |
-| `kit.mjs` | Sizes (`DW`, `DH`, `WIN`, `W`, `H`), the app's colors, **the model list and every model name**, DOM helpers (`h`, `place`, `label`, `value`, `icon`, `logo`, `image`, `rect`, `inside`, `mix`), `loadAssets(icons, pictures)`, `imagesDecoded()` |
+| `kit.mjs` | Sizes (`DW`, `DH`, `WIN`, `W`, `H`), the app's colors, **the model list, every model name and `DEFAULT_MODEL`** (the model the app is on), DOM helpers (`h`, `place`, `label`, `value`, `icon`, `logo`, `image`, `rect`, `inside`, `mix`), `loadAssets(icons, pictures)`, `imagesDecoded()` |
 | `app.mjs` | The desktop, the window and sidebar, the home page and composer, the model picker (menu, Auto switch and levels, model list, details card), a Windows toast, the arrow and I-beam pointers, popup motion, and `film(stage, shot)` |
 | `session.mjs` | The session page: header, composer with stop button, and the timeline (tool rows, model changes, sub agents, user bubbles, streamed markdown replies, the working spinner, auto scroll) |
 | `windows.mjs` | The Windows 11 taskbar that slides up, and the quick settings flyout (Wi-Fi, Bluetooth, Airplane mode) |
@@ -51,12 +51,15 @@ const { ui, pops, session, showSession, navHover } =
 //  ui: the page layer   pops: the layer menus go on   showSession(on): the sidebar's session row
 //  navRect(i): where sidebar row i is
 
-const home = buildHome(ui, { chip: 'Claude Opus 5.5 · Medium', project, branch, mode });
+// The model the app is on is kit.mjs's DEFAULT_MODEL (GPT-5.6 Sol) wherever a scene does not
+// pass one: buildHome's and buildSession's chip (DEFAULT_CHIP, "GPT-5.6 Sol · Medium"),
+// buildMenu's second argument and buildList's third.
+const home = buildHome(ui, { chip, project, branch, mode });
 //  home.page  home.composer  home.chip  home.send  home.cards
 showText(home, text, caretOn, home.send);         // typed text, caret, and the send button's state
 
-const picker = buildMenu(pops, OPUS.name);        // { menu, menuHl, below, levels, toggle }
-const { fly, flyHl, rows } = buildList(pops, [[COPILOT, MODELS], [OTHERS, LOCAL]], OPUS);
+const picker = buildMenu(pops);                   // { menu, menuHl, below, levels, toggle }
+const { fly, flyHl, rows } = buildList(pops, [[COPILOT, MODELS], [OTHERS, LOCAL]]);
 const { card, show } = buildCard(pops);           // show(model) fills the details card
 const L = layoutPicker({ chip: home.chip, menu: picker.menu, fly, card, rows });
 //  L.chip  L.menu  L.fly  L.rowMid(i)  L.cardX  L.cardTop(i)
@@ -92,6 +95,9 @@ Pages are layers. A scene that goes from the home page to a session builds both 
 
 ## Data to set per video
 
+- `kit.mjs`: `DEFAULT_MODEL`, the model the app is on (the chip, the menu's Model and Context
+  window rows, the check mark in the list). It is GPT-5.6 Sol. Change it only when the person
+  names another model for the video.
 - `kit.mjs`: `MODELS` and the model constants (name, logo, context, prices), `LOCAL`, and any
   product name. One constant per name, so a rename is a one line change.
 - `app.mjs`: `NAV` (sidebar items; internal ones are already out), `PROJECTS`, the suggestion

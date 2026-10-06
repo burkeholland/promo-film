@@ -19,7 +19,8 @@ change in minutes, including after you thought you were done.
 | Screenshots of each screen you talk about, at 100% zoom, and a short screen recording of anything that moves | `build/<name>.srt` captions |
 | What must differ from the screenshots: names, lists, things to hide | A list of everything the agent made up, so nothing false ships by accident |
 
-It also makes short clips and GIFs of one feature, up to 4K.
+It also makes short clips and GIFs of one feature, up to 4K. The app is shown running GPT-5.6 Sol
+unless you ask for another model.
 
 ## How it works
 

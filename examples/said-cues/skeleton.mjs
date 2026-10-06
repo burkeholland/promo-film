@@ -4,7 +4,7 @@
 // the composer from "There are a myriad" to the end.
 import { clamp } from '../motion.mjs';
 import { clock } from '../timeline.mjs';
-import { OPUS, WIN, imagesDecoded, loadAssets, r3, rect } from '../kit.mjs';
+import { WIN, imagesDecoded, loadAssets, r3, rect } from '../kit.mjs';
 import { buildCursor, buildHome, buildStage, buildWindow, film, pointAt, showText } from '../app.mjs';
 import { caretOn, makePath, typing } from '../input.mjs';
 import { glide, look, makeCamera, wide } from '../camera.mjs';
@@ -30,7 +30,7 @@ export default async function skeleton() {
   await loadAssets();
   const stage = buildStage();
   const { ui } = buildWindow(stage);
-  const home = buildHome(ui, { chip: `${OPUS.name} · Medium` });
+  const home = buildHome(ui);
   const cursor = buildCursor(stage);
   await imagesDecoded();
 

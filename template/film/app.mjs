@@ -3,7 +3,7 @@
 // (work/home-window.png) and the screen recording of the model picker.
 import { clamp, lerp, out, span } from './motion.mjs';
 import {
-  COMPARE, DW, DH, FG, H, HINT, ICON, ICON_INK, MUTED, NS, W, WIN,
+  COMPARE, DEFAULT_CHIP, DEFAULT_MODEL, DW, DH, FG, H, HINT, ICON, ICON_INK, MUTED, NS, W, WIN,
   h, icon, image, label, logo, mark, panelIcon, place, px, rect, value,
 } from './kit.mjs';
 
@@ -24,7 +24,7 @@ export const MENU_ROWS = [
   { label: 'Auto', top: 4, toggle: true },
   { label: 'Model', top: 41 },
   { label: 'Effort', top: 69, value: 'Medium' },
-  { label: 'Context window', top: 97, value: '328K' },
+  { label: 'Context window', top: 97, context: true },
 ];
 export const MODEL_ROW = 1;
 // With Auto on, the rows under the divider give way to what Auto optimizes
@@ -185,7 +185,7 @@ export const navRect = i => ({ x: 8, y: NAV_TOP + 32 * i, w: 262, h: 32 });
 // ---------------------------------------------------------------- home
 // The new session page: the big mark, the composer and three suggestions.
 // `page` is a layer of its own so a scene can swap it for another page.
-export function buildHome(ui, { chip: chipText, prompt = '', project = 'local-auto', branch = 'master', mode = 'Interactive' } = {}) {
+export function buildHome(ui, { chip: chipText = DEFAULT_CHIP, prompt = '', project = 'local-auto', branch = 'master', mode = 'Interactive' } = {}) {
   const page = h('div', 'layer', ui);
   // (cx, cy) is the composer's top left corner, centered in the content area.
   const cx = W / 2 - 243.5, cy = H / 2 - 61;
@@ -257,9 +257,12 @@ export function showText(field, text, caret, send) {
 }
 
 // ---------------------------------------------------------------- model picker
-// The menu that opens from the model chip. With Auto on, the rows under the
-// divider (`below`) give way to the levels and the menu grows to fit them.
-export function buildMenu(pops, model) {
+// The menu that opens from the model chip. `model` is the one the app is on
+// (a model from kit.mjs): its name and context window fill two of the rows.
+// With Auto on, the rows under the divider (`below`) give way to the levels
+// and the menu grows to fit them.
+export function buildMenu(pops, model = DEFAULT_MODEL) {
+  if (typeof model === 'string') throw new Error(`buildMenu takes a model from kit.mjs, not the name "${model}"`);
   const menu = place(h('div', 'pop', pops), 0, 0, MENU.w, MENU.h);
   menu.style.overflow = 'hidden';
   const menuHl = h('div', 'hl', menu);
@@ -281,7 +284,9 @@ export function buildMenu(pops, model) {
     }
     label(below, row.label, 12, row.top + 4);
     const isModel = MENU_ROWS.indexOf(row) === MODEL_ROW;
-    const node = value(below, isModel ? model : row.value, 238, row.top + 4, MENU.w, { color: MUTED });
+    // "400K · 1.1M" on a model's card is its window, then the largest it can be.
+    const text = isModel ? model.name : row.context ? (model.context || '').split(' · ')[0] : row.value;
+    const node = value(below, text, 238, row.top + 4, MENU.w, { color: MUTED });
     // Like the app, a long model name ends in an ellipsis.
     if (isModel) Object.assign(node.style, { maxWidth: px(176), overflow: 'hidden', textOverflow: 'ellipsis' });
     icon(below, 'chevron-right', 246, row.top + 7, 14, MUTED);
@@ -337,8 +342,9 @@ export function listRows(sections) {
   return { rows, heads, end: top, h: top + 41.3 };
 }
 
-// The model list that flies out of the Model row.
-export function buildList(pops, sections, checked) {
+// The model list that flies out of the Model row. `checked` is the model the
+// app is on.
+export function buildList(pops, sections, checked = DEFAULT_MODEL) {
   const rows = listRows(sections);
   const fly = place(h('div', 'pop', pops), 0, 0, LIST.w, rows.h);
   const flyHl = h('div', 'hl', fly);

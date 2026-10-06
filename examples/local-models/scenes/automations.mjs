@@ -14,7 +14,7 @@
 import { clamp, lerp, out, span } from '../motion.mjs';
 import { clock } from '../timeline.mjs';
 import {
-  AION, COPILOT, FG, H, HINT, HYDRA, ICON_INK, LOCAL, MODELS, MUTED, OPUS, OTHERS, W, WIN,
+  AION, COPILOT, DEFAULT_CHIP, FG, H, HINT, HYDRA, ICON_INK, LOCAL, MODELS, MUTED, OTHERS, W, WIN,
   h, icon, imagesDecoded, inside, label, loadAssets, mix, place, px, r3, rect,
 } from '../kit.mjs';
 import {
@@ -346,9 +346,9 @@ export default async function automations() {
   const D = buildDialog(win);
   // The picker opens over the dialog.
   const menus = h('div', 'layer', win);
-  const picker = buildMenu(menus, OPUS.name);
+  const picker = buildMenu(menus);
   const { menu, menuHl } = picker;
-  const { fly, flyHl, rows } = buildList(menus, SECTIONS, OPUS);
+  const { fly, flyHl, rows } = buildList(menus, SECTIONS);
   const { card } = buildCard(menus);
   const cursor = buildCursor(stage);
   const beam = buildIBeam(stage);
@@ -431,7 +431,7 @@ export default async function automations() {
 
     // The chip: Auto, then the last model once Auto is off, then Aion.
     const state = auto(t);
-    const text = back ? `${AION.name} · Medium` : state.on ? 'Auto · Efficiency' : `${OPUS.name} · Medium`;
+    const text = back ? `${AION.name} · Medium` : state.on ? 'Auto · Efficiency' : DEFAULT_CHIP;
     if (D.chip.textContent !== text) D.chip.textContent = text;
     const chipHot = sample(sim.chipHot, t);
     const chipDown = pressed && t >= CUE.chipClick && t < CUE.chipClick + .2;

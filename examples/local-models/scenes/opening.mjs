@@ -148,10 +148,10 @@ export default async function opening() {
   const stage = buildStage();
   const { dicon, tile } = buildIcon(stage);
   const { win, ui, pops } = buildWindow(stage);
-  const home = buildHome(ui, { chip: `${MODELS[0].name} · Medium` });
+  const home = buildHome(ui);
   const cursor = buildCursor(stage);
-  const { menu, menuHl } = buildMenu(pops, MODELS[0].name);
-  const { fly, flyHl, rows } = buildList(pops, [[COPILOT, MODELS]], MODELS[0]);
+  const { menu, menuHl } = buildMenu(pops);
+  const { fly, flyHl, rows } = buildList(pops, [[COPILOT, MODELS]]);
   const { card, show } = buildCard(pops);
   await imagesDecoded();
 
