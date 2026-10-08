@@ -1,0 +1,65 @@
+/* A project's page in Settings (ProjectSettingsView.tsx): sections 36 px
+   apart, each a title, a line about it and a control. Built from the app's
+   source, not from a screenshot. */
+.ppage { position: absolute; display: flex; flex-direction: column; gap: 36px; padding-bottom: 12px; font-size: 13px; line-height: 20px; color: #1f2328; }
+.ppage h2 { margin: 0; font-size: 13px; line-height: 20px; font-weight: 600; }
+.ppage h3 { margin: 0; font-size: 13px; line-height: 20px; font-weight: 400; }
+.ppage p { margin: 2px 0 0; color: #59636e; }
+.prow { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.prow > div:first-child { flex: 1; min-width: 0; }
+.prow .sw { margin-top: 0; }
+.pbtn { flex: none; display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 6px; background: #f6f8fa; box-shadow: inset 0 0 0 1px #d1d9e0;
+  font-size: 12px; font-weight: 500; color: #25292e; white-space: nowrap; }
+.pcap { font-size: 12px; line-height: 16px; color: #59636e; }
+.pcode { font: 12px Consolas, monospace; padding: 2px 4px; border-radius: 6px; background: #f6f8fa; }
+.pempty { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 20px; padding: 20px 0 16px; color: #59636e; text-align: center; }
+.pempty b { margin-top: 6px; font-weight: 600; color: #1f2328; }
+.pfold { display: flex; align-items: center; gap: 6px; margin-top: 20px; color: #59636e; }
+.pinput { margin-top: 8px; height: 32px; padding: 0 12px; border-radius: 6px; box-shadow: inset 0 0 0 1px #d1d9e0; line-height: 32px; }
+.ptext { position: relative; margin-top: 8px; height: 98px; overflow: hidden; border: 1px solid #d1d9e0; border-radius: 6px; background: #fff; }
+.ptext.focus { outline: 2px solid #0969da; outline-offset: -1px; }
+.ptext .in { position: absolute; left: 12px; top: 8px; right: 14px; font-size: 12px; line-height: 20px; white-space: pre-wrap; color: #1f2328; }
+.ptext .hint { color: #a4aab1; }
+
+/* The Customize page (ExtensionsView.tsx): a header of categories, search
+   and Add over the Featured list. Built from the app's source. */
+.cz { position: absolute; left: 279px; top: 14px; right: 0; bottom: 0; background: #fff; font-size: 13px; line-height: 20px; color: #1f2328; }
+.czhead { position: absolute; left: 0; top: 0; right: 0; height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 12px; background: #fff; border-bottom: 1px solid #e3e8ec; }
+.cztabs { flex: 1; display: flex; align-items: center; gap: 2px; }
+.cztab { position: relative; padding: 4px 8px; border-radius: 6px; color: #59636e; white-space: nowrap; }
+.cztab.on { background: #eceef0; color: #1f2328; }
+.cztab.grp { margin-left: 14px; }
+.cztab.grp::before { content: ''; position: absolute; left: -8px; top: 50%; height: 12px; margin-top: -6px; border-left: 1px solid #d8dee4; }
+.czsearch { position: relative; flex: none; width: 224px; height: 28px; padding-left: 30px; border-radius: 6px; box-shadow: inset 0 0 0 1px #d1d9e0; font-size: 13px; line-height: 28px; color: #a4aab1; white-space: nowrap; }
+.czadd { flex: none; display: flex; align-items: center; gap: 4px; height: 28px; padding: 0 6px 0 8px; border-radius: 6px; background: #1f883d; box-shadow: inset 0 0 0 1px rgba(31, 35, 40, .15);
+  font-size: 12px; font-weight: 500; color: #fff; }
+.czscroll { position: absolute; left: 0; right: 0; top: 44px; bottom: 0; overflow: hidden; }
+.czbody { position: absolute; left: 50%; top: 0; width: 896px; margin-left: -448px; padding: 24px; display: flex; flex-direction: column; gap: 36px; }
+.czh { min-height: 28px; margin-bottom: 16px; }
+.czh h2 { margin: 0; font-size: 14px; line-height: 20px; font-weight: 600; }
+.czh p { margin: 2px 0 0; color: #59636e; }
+.czgrid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.czgrid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.czcard { display: flex; flex-direction: column; overflow: hidden; border: 1px solid #e3e8ec; border-radius: 12px; }
+.czhero { display: flex; align-items: center; justify-content: center; aspect-ratio: 16 / 9; background: #f6f8fa; border-bottom: 1px solid rgba(209, 217, 224, .5); }
+.czhero .cover { width: 100%; height: 100%; object-fit: cover; }
+.czhero .ico { width: 56px; height: 56px; object-fit: contain; }
+.czcard .b { flex: 1; display: flex; flex-direction: column; gap: 4px; padding: 12px 12px 0; }
+.czcard .n, .czcompact .n { font-weight: 600; }
+.czcard .d { color: #59636e; }
+.czcard .f { display: flex; align-items: center; min-height: 28px; padding: 8px 12px 12px; box-sizing: content-box; }
+.czghost { display: flex; align-items: center; gap: 4px; height: 28px; padding: 0 8px 0 6px; margin-left: -6px; border-radius: 6px; font-size: 12px; font-weight: 500; color: #25292e; }
+.czcompact { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #d8dee4; border-radius: 12px; }
+.czcompact .tile { flex: none; display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; overflow: hidden; border-radius: 6px; background: #f6f8fa; }
+.czcompact .w, .czrow .w { flex: 1; min-width: 0; }
+.czcompact .d, .czrow .d { font-size: 12px; line-height: 16px; color: #59636e; }
+.tile .full { width: 100%; height: 100%; object-fit: cover; }
+.czcompact .tile .fit { width: 26px; height: 26px; object-fit: contain; }
+.czlist { overflow: hidden; border: 1px solid #e3e8ec; border-radius: 6px; }
+.czrow { display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; }
+.czrow + .czrow { border-top: 1px solid #e3e8ec; }
+.czrow .tile { flex: none; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; margin-top: 2px; overflow: hidden; border-radius: 6px; background: rgba(129, 139, 152, .12); }
+.czrow .tile .fit { width: 20px; height: 20px; object-fit: contain; }
+.czrow .n { font-weight: 500; }
+.czrow > .ic, .czcompact > .ic { margin: 6px 6px 0 0; }
+.czcompact > .ic { margin-top: 0; }

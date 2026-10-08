@@ -33,7 +33,7 @@ console.log(`Made ${target}
 Next, from that folder:
   1. Put the recording in assets/video/ and name it as RECORDING in film/edit.mjs.
   2. python tools/transcribe.py      words and their times -> film/words.mjs
-  3. node preview.mjs                watch it live at http://127.0.0.1:4173
+  3. node preview.mjs                watch it live at http://127.0.0.1:4747/${name}/ (it prints the address)
   4. node render.mjs --scene demo --sheet     look at a scene as one picture
-  5. node render.mjs --all --draft && node compose.mjs --draft     a review cut
-  6. node render.mjs --all && node compose.mjs                     the final`);
+  5. node deliver.mjs --draft        a review cut (or Quick draft in the preview)
+  6. node deliver.mjs                the final, captions, made-up list and a summary`);

@@ -53,5 +53,10 @@ export const MUTE = [];
 // cleaned up (Adobe Podcast, a mastered voiceover).
 // export const LOUDNESS = -16.8;
 
+// Where the limiter holds the peaks, in dBFS. -1.5 by default. Lower it when
+// compose reports a true peak over -1 dBFS (encoding can lift a hard-limited
+// voice past the ceiling).
+// export const PEAK = -2.2;
+
 // Names the captions never split between lines (captions.mjs).
 export const NAMES = [];

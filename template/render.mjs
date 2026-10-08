@@ -50,6 +50,7 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { Worker } from 'node:worker_threads';
 import { launchEdge, until } from './lib/edge.mjs';
+import { fetchIcon, iconName } from './lib/icons.mjs';
 import { LEAD, PARTS } from './film/edit.mjs';
 import { FPS } from './film/timeline.mjs';
 
@@ -127,6 +128,8 @@ async function serve() {
       }
     } catch { /* A malformed address is simply not found. */ }
     if (!file || !TYPES[extname(file)]) { response.writeHead(404).end(); return; }
+    // A Lucide icon the kit asks for and does not have yet is downloaded.
+    if (!existsSync(file) && iconName(file)) await fetchIcon(iconName(file));
     try {
       const body = await readFile(file);
       response.writeHead(200, { 'content-type': TYPES[extname(file)], 'cache-control': 'no-store' });
@@ -201,10 +204,29 @@ async function capture(film, time) {
 }
 
 // Visit every state once so each image is decoded before the frames that count.
+// The same moments are checked for layout problems (film.js), and what the
+// film reports about itself goes to build/info/<scene>.json, where
+// captions.mjs and deliver.mjs read it.
+const linted = new Set();
 async function warm(film) {
-  const { duration } = film.info;
-  for (let k = 0; k <= 12; k++) await capture(film, (duration * k) / 12);
+  const { duration, scene } = film.info;
+  const check = !linted.has(scene);
+  linted.add(scene);
+  const warnings = new Map();
+  for (let k = 0; k <= 12; k++) {
+    const time = (duration * k) / 12;
+    await capture(film, time);
+    if (!check) continue;
+    for (const text of await film.page.evaluate('window.__film.lint ? window.__film.lint() : []')) {
+      if (!warnings.has(text)) warnings.set(text, time);
+    }
+  }
   await capture(film, 0);
+  if (!check) return;
+  const list = [...warnings].map(([text, time]) => `at ${time.toFixed(2)}s, ${text}`);
+  for (const text of list) console.log(`${scene}: warning: ${text}`);
+  await mkdir(join(here, 'build', 'info'), { recursive: true });
+  await writeFile(join(here, 'build', 'info', `${scene}.json`), `${JSON.stringify({ ...film.info, warnings: list }, null, 2)}\n`);
 }
 
 const stamp = time => `t${time.toFixed(2).padStart(5, '0')}`;
@@ -220,7 +242,10 @@ const spread = (duration, count) => Array.from({ length: count }, (_, k) => Math
 async function renderStills(url, pick, metrics, folder, prefix, quiet = false) {
   await mkdir(folder, { recursive: true });
   const [film] = await openFilms(url, 1, metrics);
-  if (!quiet) console.log(JSON.stringify(film.info));
+  if (!quiet) {
+    const { captions, ...info } = film.info;
+    console.log(JSON.stringify(info));
+  }
   await warm(film);
   const shots = [];
   for (const time of pick(film.info.duration)) {

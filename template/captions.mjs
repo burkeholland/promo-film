@@ -2,7 +2,8 @@
 // their times come from film/words.mjs (`python tools/transcribe.py`) and go
 // through the same edit as the picture (film/edit.mjs), so run
 // `node captions.mjs` again after changing the edit. Spelling is fixed where
-// the words are made, in transcript/fixes.txt.
+// the words are made, in transcript/fixes.txt. A video with no voice gets the
+// captions its films show on screen instead (lib/onscreen.mjs).
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -16,7 +17,17 @@ const OUT = join(here, 'build', `${NAME}.srt`);
 const MAX = 42;
 // Names that are never split between lines or captions.
 const NAMES = edit.NAMES || [];
-if (!WORDS.length) throw new Error('There is no transcript yet. Make one with: python tools/transcribe.py');
+// With no voice, the captions are the words the films show on screen.
+if (!WORDS.length) {
+  const { onScreenCaptions } = await import('./lib/onscreen.mjs');
+  const list = onScreenCaptions(here, PARTS, LEAD);
+  if (!list.length) throw new Error('There is no transcript yet (python tools/transcribe.py), and no film shows captions, so there is nothing to caption.');
+  const srt = list.map(({ start, end, lines }, k) => [k + 1, `${stamp(start)} --> ${stamp(end)}`, ...lines, ''].join('\r\n'));
+  mkdirSync(dirname(OUT), { recursive: true });
+  writeFileSync(OUT, srt.join('\r\n'));
+  console.log(`${list.length} captions from the words on screen (there is no voice) in ${OUT}`);
+  process.exit(0);
+}
 // Words that lean on the next one, so a line shouldn't end on them.
 const LEANS = new Set(("a an the of to for and or but with in on at by from as into is are be will can " +
   "that this these those my your our all any just such so if where while when which than then there " +
@@ -132,11 +143,11 @@ times.forEach((time, k) => {
   time.end = Math.min(time.end, next ? next.start - GAP : length);
 });
 
-const stamp = seconds => {
+function stamp(seconds) {
   const ms = Math.round(seconds * 1000);
   const pad = (n, width = 2) => String(n).padStart(width, '0');
   return `${pad(Math.floor(ms / 3600000))}:${pad(Math.floor(ms / 60000) % 60)}:${pad(Math.floor(ms / 1000) % 60)},${pad(ms % 1000, 3)}`;
-};
+}
 const srt = captions.map((list, k) =>
   [k + 1, `${stamp(times[k].start)} --> ${stamp(times[k].end)}`, ...layout(list).lines, ''].join('\r\n'));
 mkdirSync(dirname(OUT), { recursive: true });

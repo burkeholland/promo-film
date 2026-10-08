@@ -53,6 +53,16 @@ export const LOCAL = [
 export const COPILOT = 'GitHub Copilot';
 export const OTHERS = 'Other providers';
 
+// ---------------------------------------------------------------- people and modes
+// The person signed in: the name in the sidebar. Their picture is assets/avatar.png. Change both for a video that must not show a real person.
+export const USER = 'Burke Holland';
+// The session modes, as the app's mode menu lists them
+// (prompt-composer.types.ts in the app's source).
+export const INTERACTIVE = { label: 'Interactive', about: 'Step-by-step collaboration', home: 'Ask anything or paste a URL. Use / for commands, & sessions, # issues…', session: 'Ask anything. Use / for commands, @ files, & sessions, # issues…' };
+export const PLAN = { label: 'Plan', about: 'Plan first, execute when ready', home: 'Plan a task or paste a URL. Use / for commands, & sessions, # issues…', session: 'Plan a task. Use / for commands, @ files, & sessions, # issues…' };
+export const AUTOPILOT = { label: 'Autopilot', about: 'End-to-end execution without interruption', home: 'Delegate a task or paste a URL. Use / for commands, & sessions, # issues…', session: 'Delegate a task. Use / for commands, @ files, & sessions, # issues…', color: '#2c8141' };
+export const MODES = [INTERACTIVE, PLAN, AUTOPILOT];
+
 // ---------------------------------------------------------------- DOM
 export const px = v => `${Math.round(v * 1000) / 1000}px`;
 export const r3 = v => Math.round(v * 1000) / 1000;

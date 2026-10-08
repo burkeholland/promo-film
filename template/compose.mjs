@@ -31,7 +31,10 @@ const build = join(here, 'build');
 const FPS = 30;
 const RATE = 44100;
 const LOUDNESS = edit.LOUDNESS ?? -14;
-const PEAK_DB = -1.5;
+// The limiter holds sample peaks; encoding to AAC can lift the true peak a
+// little past that. PEAK in film/edit.mjs lowers the ceiling when the
+// finished video measures over -1 dBFS.
+const PEAK_DB = edit.PEAK ?? -1.5;
 // Each cut in the sound fades over 10 ms so it never clicks.
 const FADE = 0.01;
 
@@ -109,8 +112,10 @@ if (LEAD) voice.push(`anullsrc=r=${RATE}:cl=stereo,atrim=end_sample=${Math.round
 const joined = `${LEAD ? '[lead]' : ''}${runs.map((_, i) => `[r${i}]`).join('')}concat=n=${runs.length + (LEAD ? 1 : 0)}:v=0:a=1,aresample=48000`;
 
 const { loudness: spoken, peak: spokenPeak } = measure(['-i', RECORDING, '-filter_complex', [...voice, `${joined},ebur128=peak=true[out]`].join(';'), '-map', '[out]']);
-const gain = Number.isFinite(spoken) && spoken > -60 ? Math.round((LOUDNESS - spoken) * 10) / 10 : 0;
-console.log(Number.isFinite(spoken) ? `The voice measures ${spoken} LUFS, so it is turned ${gain < 0 ? 'down' : 'up'} ${Math.abs(gain)} dB.` : 'The voice could not be measured, so its level is left alone.');
+// A video with no voice (words on screen, a silent track) has nothing to bring up.
+const silent = !(spoken > -60);
+const gain = silent ? 0 : Math.round((LOUDNESS - spoken) * 10) / 10;
+console.log(silent ? 'The sound is silent, so its level is left alone.' : `The voice measures ${spoken} LUFS, so it is turned ${gain < 0 ? 'down' : 'up'} ${Math.abs(gain)} dB.`);
 const limited = spokenPeak + gain - PEAK_DB;
 if (Number.isFinite(limited) && limited > 0.05) {
   console.log(`Its peaks are at ${spokenPeak} dBFS, so the limiter takes up to ${limited.toFixed(1)} dB off the loudest ones. For no limiting at all (sound that is already cleaned up or mastered), set LOUDNESS = ${(Math.floor((spoken + PEAK_DB - spokenPeak) * 10) / 10).toFixed(1)} in film/edit.mjs.`);
@@ -186,4 +191,5 @@ const ffmpeg = spawn('ffmpeg', args, { stdio: 'inherit', windowsHide: true });
 const [code] = await new Promise(done => ffmpeg.on('exit', (...result) => done(result)));
 if (code !== 0) throw new Error(`ffmpeg exited with ${code}.`);
 const made = measure(['-i', out, '-map', '0:a', '-af', 'ebur128=peak=true']);
-console.log(`Wrote ${relative(here, out)}: ${(end / FPS).toFixed(2)}s, ${end} frames, ${made.loudness} LUFS, true peak ${made.peak} dBFS, in ${Math.round((Date.now() - started) / 1000)}s`);
+const level = made.loudness > -60 && Number.isFinite(made.peak) ? `${made.loudness} LUFS, true peak ${made.peak} dBFS` : 'a silent track';
+console.log(`Wrote ${relative(here, out)}: ${(end / FPS).toFixed(2)}s, ${end} frames, ${level}, in ${Math.round((Date.now() - started) / 1000)}s`);

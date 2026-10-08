@@ -6,7 +6,9 @@
     "preview": "node preview.mjs",
     "words": "python tools/transcribe.py",
     "storyboard": "node render.mjs --all --sheet",
-    "draft": "node render.mjs --all --draft && node compose.mjs --draft",
-    "final": "node render.mjs --all && node compose.mjs && node captions.mjs"
+    "draft": "node deliver.mjs --draft",
+    "final": "node deliver.mjs",
+    "deliver": "node deliver.mjs",
+    "madeup": "node tools/madeup.mjs"
   }
 }

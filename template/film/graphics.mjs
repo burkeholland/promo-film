@@ -99,3 +99,65 @@ export function arrive(node, t, start, dur, ease, dx = 0, dy = 0) {
   nudge(node, dx * (1 - u), dy * (1 - u));
   return u;
 }
+
+// ---------------------------------------------------------------- captions
+// Words on screen for a film with no voice: a dark pill near the foot of the
+// frame, fixed there while the camera moves. Each caption is
+// { from, to, parts }: it fades up at `from` and away at `to`. A part is a
+// string, or [text, at] for words that stay dim until `at`, so a line can
+// build in step with what the app does.
+export function buildCaptions(captions) {
+  // Kept for captions.mjs, which writes them as the video's SRT when there is
+  // no voice to transcribe.
+  window.__captions ||= [];
+  for (const { from, to, parts } of captions) {
+    window.__captions.push({ from, to: Number.isFinite(to) ? to : null, text: parts.map(part => [part].flat()[0]).join('').replace(/\s+/g, ' ').trim() });
+  }
+  const built = captions.map(({ from, to, parts, left }) => {
+    const node = h('div', 'cap', document.body);
+    // left moves a caption's middle off the frame's middle (a CSS length).
+    if (left) node.style.left = left;
+    const spans = parts.map(part => {
+      const [text, at = -Infinity] = [part].flat();
+      return { span: h('span', null, node, text), at };
+    });
+    return { node, spans, from, to };
+  });
+  const ease = u => 1 - (1 - u) ** 3;
+  return t => {
+    for (const { node, spans, from, to } of built) {
+      const u = Math.min(ease(Math.min(1, Math.max(0, (t - from) / .35))), 1 - Math.min(1, Math.max(0, (t - to) / .25)));
+      node.style.visibility = u > 0 ? 'visible' : 'hidden';
+      if (!(u > 0)) continue;
+      node.style.opacity = u;
+      node.style.transform = `translate(-50%, ${px((1 - ease(Math.min(1, Math.max(0, (t - from) / .35)))) * 10)})`;
+      for (const { span, at } of spans) span.style.opacity = .32 + .68 * Math.min(1, Math.max(0, (t - at) / .3));
+    }
+  };
+}
+
+// ---------------------------------------------------------------- rising words
+// A line of Mona Sans whose words rise out of the line under them, one after
+// another. `text` is split at spaces; a word in [brackets] takes `accent`.
+// Place the returned node with place(); pose it with rise().
+export function words(parent, text, { size = 64, weight = 700, color = INK, accent = color, line = 1.2, gap = .26, track = -.02, stretch = 100 } = {}) {
+  const node = h('div', 'gfx', parent);
+  Object.assign(node.style, { display: 'flex', alignItems: 'baseline', columnGap: `${gap}em`, letterSpacing: `${track}em`, fontStretch: `${stretch}%`, fontSize: px(size), lineHeight: px(size * line), fontWeight: weight });
+  const items = text.split(' ').map(word => {
+    const lit = word.startsWith('[');
+    const wrap = h('div', null, node);
+    wrap.style.clipPath = 'inset(-50% -30% 0 -30%)';
+    const inner = h('div', null, wrap, word.replace(/[[\]]/g, ''));
+    inner.style.color = lit ? accent : color;
+    return { wrap, inner };
+  });
+  return { node, items };
+}
+// Word k starts at start + k * step and takes `dur` to come up.
+export function rise({ items }, t, start, step = .07, dur = .6, ease = u => 1 - (1 - u) ** 4) {
+  items.forEach(({ wrap, inner }, k) => {
+    const u = ease(Math.min(1, Math.max(0, (t - start - k * step) / dur)));
+    wrap.style.visibility = u > 0 ? 'visible' : 'hidden';
+    inner.style.transform = `translateY(${Math.round((1 - u) * 106000) / 1000}%)`;
+  });
+}

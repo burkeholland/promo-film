@@ -203,3 +203,47 @@ body.board #wallpaper { display: none; }
 .grain { position: absolute; pointer-events: none; mix-blend-mode: overlay; }
 .reveal { position: absolute; overflow: hidden; }
 .reveal > .gfx { position: relative; display: block; }
+/* The timeline's "Asking user:" row and the answer under it
+   (AskUserToolCallRow.tsx in the app's source). */
+.tt .q { color: #818b98; margin-left: 4px; }
+.aline { position: absolute; left: 7.5px; top: -5px; width: 7px; height: 19px; border-left: 1px solid #d1d9e0; border-bottom: 1px solid #d1d9e0; border-bottom-left-radius: 8px; }
+.trow img.avatar { box-shadow: none; }
+
+/* The question card above the composer (UserInputPrompt.tsx). */
+.askcard { position: absolute; background: #fff; border: 1px solid #d1d9e0; border-radius: 12px; overflow: hidden; visibility: hidden; }
+.askhead { padding: 10px 8px 4px 16px; font-size: 12px; line-height: 16px; font-weight: 500; color: #59636e; }
+.asktext { padding: 0 16px 4px; font-size: 13px; line-height: 20px; color: #1f2328; }
+.asktext code { font-family: Consolas, monospace; font-size: 12px; padding: 2px 5px; border-radius: 6px; background: rgba(129, 139, 152, .12); }
+.askopts { padding: 8px; }
+.askopt { display: flex; align-items: center; gap: 10px; min-height: 32px; padding: 6px 36px 6px 8px; border-radius: 8px; font-size: 13px; line-height: 20px; color: #1f2328; }
+.askopt.on { background: #f6f8fa; }
+.askkey { flex: none; width: 19px; height: 18px; border-radius: 6px; background: rgba(129, 139, 152, .12); font-size: 12px; line-height: 18px; text-align: center; color: #59636e; }
+.askhint { color: #a4aab1; }
+.askfoot { display: flex; justify-content: flex-end; gap: 8px; padding: 0 12px 8px; }
+.askbtn { display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 6px 0 8px; border-radius: 6px; background: #f6f8fa; box-shadow: inset 0 0 0 1px #d1d9e0; font-size: 12px; font-weight: 500; color: #25292e; white-space: nowrap; }
+.askbtn.primary { background: #1f883d; color: #fff; box-shadow: inset 0 0 0 1px rgba(31, 35, 40, .15); }
+.askbtn kbd { font: inherit; font-size: 11px; line-height: 16px; min-width: 18px; padding: 0 4px; border-radius: 4px; text-align: center; color: #59636e; background: rgba(129, 139, 152, .16); }
+.askbtn.primary kbd { color: #fff; background: rgba(255, 255, 255, .22); }
+
+/* Captions for a film with no voice (graphics.mjs): a dark pill near the
+   foot of the frame, outside the camera's move. */
+.cap { position: absolute; left: 50%; bottom: 30px; padding: 11px 22px 12px; border-radius: 14px; white-space: nowrap; visibility: hidden;
+  background: rgba(13, 17, 23, .93); box-shadow: 0 0 0 1px rgba(240, 246, 252, .1), 0 10px 30px rgba(1, 4, 9, .35);
+  font: 600 23px/30px "Mona Sans", "Segoe UI", sans-serif; letter-spacing: -.005em; color: #f0f6fc; }
+
+/* Computer use rows: the tool's first argument, a little apart (screenshot computer-use-rows). */
+.tt .arg { margin-left: 8px; }
+/* Pictures a tool returned, in the thread. */
+.tlthumb { position: absolute; overflow: hidden; border-radius: 6px; background: #f6f8fa; box-shadow: inset 0 0 0 1px rgba(31, 35, 40, .12); }
+.tlthumb > .inner { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.tlthumb::after { content: ""; position: absolute; inset: 0; border-radius: 6px; box-shadow: inset 0 0 0 1px rgba(31, 35, 40, .12); pointer-events: none; }
+
+/* The approval card: the question card with a title row and numbered choices. Made up, not from a screenshot. */
+.apphead { position: relative; padding: 9px 16px 4px 40px; font-size: 14px; line-height: 20px; font-weight: 600; color: #1f2328; }
+.apphead .ic { top: 11px; }
+.appenter { margin-left: auto; font-size: 12px; color: #59636e; visibility: hidden; }
+.askopt.on .appenter { visibility: inherit; }
+.askopt.down { background: #eef1f4; }
+
+/* A plain notification's body: at most three lines, as Windows shows it. */
+.toast .body.clamp { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }

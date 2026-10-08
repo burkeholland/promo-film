@@ -3,7 +3,7 @@
 // (work/home-window.png) and the screen recording of the model picker.
 import { clamp, lerp, out, span } from './motion.mjs';
 import {
-  COMPARE, DEFAULT_CHIP, DEFAULT_MODEL, DW, DH, FG, H, HINT, ICON, ICON_INK, MUTED, NS, W, WIN,
+  AUTOPILOT, COMPARE, DEFAULT_CHIP, DEFAULT_MODEL, DW, DH, FG, H, HINT, ICON, ICON_INK, INTERACTIVE, MODES, MUTED, NS, USER, W, WIN,
   h, icon, image, label, logo, mark, panelIcon, place, px, rect, value,
 } from './kit.mjs';
 
@@ -13,6 +13,7 @@ export const NAV_TOP = 68.5;
 // out here), so everything below the nav moves up by the rows that are gone.
 const NAV_LIFT = 32 * (7 - NAV.length);
 // The last two rows sit about 2 px further left in the reference screenshot.
+// The sidebar's projects. Use sample names for a video that must not show real ones.
 export const PROJECTS = [['message-circle', 'Chats'], ['folder-open', 'handoff-bench'], ['folder', 'local-auto'], ['folder', 'markdoc', -1.92], ['folder', 'fledglingv3', -1.92]];
 export const PROJECTS_TOP = 336.5 - NAV_LIFT;
 const SUGGESTIONS = [
@@ -39,7 +40,7 @@ export const LEVEL_ROW = 10;
 export const MENU = { w: 272, h: 129, auto: 157 };
 export const LIST = { w: 288, first: 68.7, pitch: 28 };
 export const CARD = { w: 240, h: 192, gap: 4 };
-export const PLACEHOLDER = 'Ask anything or paste a URL. Use / for commands, & sessions, # issues...';
+export const PLACEHOLDER = INTERACTIVE.home;
 
 // ---------------------------------------------------------------- desktop
 export function buildStage() {
@@ -140,6 +141,9 @@ function sessionRow(parent, text, top) {
 // second, lighter one that scenes move under the pointer. A session's row
 // stays hidden until `showSession(true)`: then its project opens, the rows
 // below move down to make room, and the session takes the highlight.
+// `showSession(true, false)` lists the session but leaves the highlight on
+// the page the app is on, for a session that works while the person is
+// somewhere else.
 function buildSidebar(ui, active, session, projects) {
   panelIcon(ui, 17.92, 28.8, ICON_INK);
   icon(ui, 'search', 188.08, 27.86, 16, ICON_INK);
@@ -164,17 +168,17 @@ function buildSidebar(ui, active, session, projects) {
     }
   });
   image(ui, 'avatar', 'assets/avatar.png', 10.86, H - 32.28, 20, 20);
-  label(ui, 'Burke Holland', 39.5, H - 31.8);
+  label(ui, USER, 39.5, H - 31.8);
   icon(ui, 'message-circle-heart', 215.96, H - 29.64, 16, ICON_INK);
   const gear = icon(ui, 'settings', 244.18, H - 29.64, 16, ICON_INK);
   const homeTop = NAV_TOP + 32 * active;
-  const showSession = on => {
+  const showSession = (on, selected = on) => {
     if (!side) return;
     side.row.style.visibility = on ? 'inherit' : 'hidden';
     closed.style.visibility = on ? 'hidden' : 'inherit';
     opened.style.visibility = on ? 'inherit' : 'hidden';
     for (const node of below) node.style.transform = on ? 'translateY(32px)' : '';
-    navActive.style.top = px(on ? side.row.offsetTop : homeTop);
+    navActive.style.top = px(on && selected ? side.row.offsetTop : homeTop);
   };
   showSession(false);
   return { navHover, navActive, gear, session: side, showSession };
@@ -185,7 +189,7 @@ export const navRect = i => ({ x: 8, y: NAV_TOP + 32 * i, w: 262, h: 32 });
 // ---------------------------------------------------------------- home
 // The new session page: the big mark, the composer and three suggestions.
 // `page` is a layer of its own so a scene can swap it for another page.
-export function buildHome(ui, { chip: chipText = DEFAULT_CHIP, prompt = '', project = 'local-auto', branch = 'master', mode = 'Interactive' } = {}) {
+export function buildHome(ui, { chip: chipText = DEFAULT_CHIP, prompt = '', project = 'local-auto', branch = 'master', mode = INTERACTIVE.label } = {}) {
   const page = h('div', 'layer', ui);
   // (cx, cy) is the composer's top left corner, centered in the content area.
   const cx = W / 2 - 243.5, cy = H / 2 - 61;
@@ -210,7 +214,7 @@ export function buildHome(ui, { chip: chipText = DEFAULT_CHIP, prompt = '', proj
   const field = buildField(composer, PLACEHOLDER, prompt);
   const bar = place(h('div', 'cbar', composer), 8, 58);
   icon(h('div', 'cbtn sq', bar), 'plus', 6.64, 6.64, 16, MUTED);
-  h('div', 'cbtn', bar, mode);
+  const modeChip = h('div', 'cbtn', bar, mode);
   const chip = h('div', 'cbtn', bar, chipText);
   icon(composer, 'mic', 698.84, 64.64, 16, MUTED);
   const send = place(h('div', 'send', composer), 730.1, 60);
@@ -229,7 +233,7 @@ export function buildHome(ui, { chip: chipText = DEFAULT_CHIP, prompt = '', proj
   const note = label(page, 'GitHub Copilot uses AI. Check for mistakes.', 279.64, H - 49.7, { size: 12, line: 18, color: MUTED });
   note.style.width = px(W - 279);
   note.style.textAlign = 'center';
-  return { page, chip, composer, send, cards, ...field };
+  return { page, chip, mode: modeChip, composer, send, cards, ...field };
 }
 
 // A prompt field: the placeholder, the typed text and its caret.
@@ -440,10 +444,69 @@ export function listRowAt(L, [x, y]) {
 export const placeMenuHl = (hl, row) => place(hl, 4, row >= LEVEL_ROW ? LEVELS[row - LEVEL_ROW].top : MENU_ROWS[row].top, 264, 28);
 export const placeListHl = (hl, L, row) => place(hl, 4, L.rows.rows[row].top, LIST.w - 8, LIST.pitch);
 
+// ---------------------------------------------------------------- mode menu
+// The menu that opens from the mode chip: a "Mode" heading and one row per
+// mode, each a title over a line about it, with a check on the one in use.
+// Sizes are from the app's source (primer/menu/menu.tsx): 4 px of padding, a
+// 26 px heading and 48 px rows whose text starts 34 px in.
+export const MODE_MENU = { pad: 4, head: 26, row: 48 };
+export function buildModeMenu(pops, chosen = INTERACTIVE, modes = MODES) {
+  const height = 2 * MODE_MENU.pad + MODE_MENU.head + MODE_MENU.row * modes.length;
+  const menu = place(h('div', 'pop', pops), 0, 0, 400, height);
+  const hl = h('div', 'hl', menu);
+  label(menu, 'Mode', 12, MODE_MENU.pad + 6, { size: 12, line: 16, color: MUTED, weight: 500 });
+  const rows = modes.map((mode, i) => {
+    const top = MODE_MENU.pad + MODE_MENU.head + MODE_MENU.row * i;
+    if (mode === chosen) icon(menu, 'check', 12, top + 7, 14, MUTED);
+    const title = label(menu, mode.label, 34, top + 4);
+    const about = label(menu, mode.about, 34, top + 24, { size: 12, line: 20, color: MUTED });
+    return { mode, top, w: Math.max(title.offsetWidth, about.offsetWidth) };
+  });
+  // The menu is as wide as its longest line.
+  const w = Math.ceil(34 + Math.max(...rows.map(row => row.w)) + 8 + MODE_MENU.pad);
+  menu.style.width = px(w);
+  return { menu, hl, rows, w, h: height };
+}
+// Where the mode menu lands, in window px: below its chip, 8 px away, like
+// the model picker's. rowAim(i) is a place on row i that covers none of its
+// words: on its title's line, past the title, so the arrow ends above the
+// line about the mode.
+export function layoutModeMenu(chipNode, built) {
+  const chip = rect(chipNode, WIN);
+  const box = { x: chip.x, y: chip.y + chip.h + 8, w: built.w, h: built.h };
+  place(built.menu, box.x, box.y);
+  built.menu.style.transformOrigin = `${px(chip.w / 2)} 0`;
+  return { chip, menu: box, rows: built.rows, rowAim: i => [box.x + 178, box.y + built.rows[i].top + 6] };
+}
+// Which mode row the pointer is on (desktop p), or -1.
+export function modeRowAt(M, [x, y]) {
+  x -= WIN.x + M.menu.x;
+  y -= WIN.y + M.menu.y;
+  if (x < MODE_MENU.pad || x >= M.menu.w - MODE_MENU.pad) return -1;
+  return M.rows.findIndex(row => y >= row.top && y < row.top + MODE_MENU.row);
+}
+export const placeModeHl = (hl, M, row) => place(hl, MODE_MENU.pad, M.rows[row].top, M.menu.w - 2 * MODE_MENU.pad, MODE_MENU.row);
+
+// A composer in a mode: the chip's name, the placeholder, and for Autopilot
+// the green edge the app gives the box. `place` is 'home' or 'session'.
+export function showMode(composer, mode, where = 'home') {
+  if (composer.mode.textContent !== mode.label) composer.mode.textContent = mode.label;
+  if (composer.hint.textContent !== mode[where]) composer.hint.textContent = mode[where];
+  (composer.composer || composer.box).style.borderColor = mode.color || '';
+}
+// The send button's color: Autopilot's is green. `ready` is a prompt to send;
+// without one the button is at half strength.
+export function paintSend(send, mode, { ready = false, over = false, down = false } = {}) {
+  if (mode === AUTOPILOT) send.style.background = !ready ? '#95c0a0' : down ? '#256e37' : over ? '#37a151' : AUTOPILOT.color;
+  else send.style.background = !ready ? '' : down ? '#424a53' : over ? '#32383f' : '#25292e';
+}
+
 // ---------------------------------------------------------------- toast
 // A Windows 11 notification in the corner of the desktop, over the window.
-// The text flows, so a long body wraps like the real one.
+// The text flows, so a long body wraps like the real one. A note with no
+// `progress` is a plain one: a title and a body, no bar and no line under it.
 export function buildToast(stage, before, note) {
+  if (note.progress === undefined) return plainToast(stage, before, note);
   const toast = h('div', 'toast');
   stage.insertBefore(toast, before);
   image(toast, 'logo', 'assets/app-icon.png', 16, 15, 16, 16);
@@ -458,6 +521,21 @@ export function buildToast(stage, before, note) {
   const status = h('span', null, foot, note.status);
   const amount = h('span', null, foot, note.value);
   return { toast, title, body, bar, status, amount };
+}
+// The app's own notifications (desktopNotification.ts in its source): the
+// session's name as the title, and "Agent finished: " and the start of the
+// reply as the body. Windows shows at most three lines of body.
+function plainToast(stage, before, note) {
+  const toast = h('div', 'toast', null);
+  stage.insertBefore(toast, before);
+  image(toast, 'logo', 'assets/app-icon.png', 16, 15, 16, 16);
+  label(toast, 'GitHub Copilot', 40, 14, { size: 12, line: 18, color: '#1b1b1b' });
+  place(h('div', 'glyph', toast, '\uE712'), 296, 14);
+  place(h('div', 'glyph', toast, '\uE8BB'), 332, 14);
+  const title = h('div', 'title', toast, note.title);
+  const body = h('div', 'body clamp', toast, note.body);
+  body.dataset.clip = '';
+  return { toast, title, body };
 }
 
 // ---------------------------------------------------------------- motion

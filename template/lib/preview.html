@@ -45,6 +45,12 @@
   #bar .camera { background: #30363d; }
   #head { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #fff; pointer-events: none; }
   #bar .pin { position: absolute; top: 0; width: 0; height: 0; margin-left: -4px; border: 4px solid transparent; border-top: 7px solid #f0b72f; pointer-events: none; }
+  button:disabled { opacity: .5; cursor: default; }
+  a.button { color: inherit; text-decoration: none; background: #1f6feb; border: 1px solid #1f6feb; border-radius: 6px; padding: 4px 9px; white-space: nowrap; }
+  a.button:hover { background: #388bfd; }
+  #job { max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dim); font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
+  #job.failed { color: #ff7b72; cursor: pointer; }
+  #job.running { cursor: pointer; }
 </style>
 </head>
 <body>
@@ -72,6 +78,10 @@
     <select id="rate" title="Speed"><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="1.5">1.5x</option><option value="2">2x</option></select>
     <label><input type="checkbox" id="loop"> Loop this part (L)</label>
     <span class="keys">Space play · ← → frame · Shift ← → second · [ ] part · N note</span>
+    <span id="job"></span>
+    <button id="draft" title="A quick review cut at 960 x 540 (node deliver.mjs --draft)">Quick draft</button>
+    <button id="export" title="Render what changed at full quality, compose, captions and the made-up list (node deliver.mjs). Takes minutes.">Export video</button>
+    <span id="downloads"></span>
   </div>
   <div id="bar"><div id="head"></div></div>
 </footer>
@@ -96,14 +106,16 @@ let edit = { PARTS: [] };
 let WORDS = [];
 let broken = null;
 try {
-  edit = await import('/film/edit.mjs');
-  ({ WORDS } = await import('/film/words.mjs'));
+  edit = await import('./film/edit.mjs');
+  ({ WORDS } = await import('./film/words.mjs'));
 } catch (error) {
   broken = `film/edit.mjs could not be loaded:\n\n${error.message || error}`;
 }
 const PARTS = edit.PARTS || [];
 const LEAD = edit.LEAD || 0;
-$('name').textContent = document.title = edit.NAME || 'Preview';
+$('name').textContent = edit.NAME || 'Preview';
+// The tab names the video, so two previews are never mistaken for each other.
+document.title = `${edit.NAME || 'Preview'} · preview`;
 
 const segments = [];
 if (only) {
@@ -123,11 +135,11 @@ if (only) {
 }
 let total = segments.reduce((sum, segment) => sum + segment.length, 0);
 const sound = Boolean(edit.RECORDING) && segments.some(segment => !segment.silent);
-if (sound) video.src = `/media/${encodeURIComponent(edit.RECORDING)}`;
+if (sound) video.src = `media/${encodeURIComponent(edit.RECORDING)}`;
 
-const scenes = await fetch('/scenes').then(response => response.json()).catch(() => []);
+const scenes = await fetch('scenes').then(response => response.json()).catch(() => []);
 $('scene').innerHTML = `<option value="">Whole edit</option>${scenes.map(name => `<option${name === only ? ' selected' : ''}>${name}</option>`).join('')}`;
-$('scene').onchange = event => { location.href = event.target.value ? `/?scene=${event.target.value}` : '/'; };
+$('scene').onchange = event => { location.href = event.target.value ? `./?scene=${event.target.value}` : './'; };
 
 // ------------------------------------------------------------ films
 // Each film is its own page in a frame, posed by the same seek(t) the
@@ -138,13 +150,13 @@ function film(name) {
   const node = document.createElement('iframe');
   const entry = { node, api: null, info: null, error: null };
   films.set(name, entry);
-  node.src = `/film/index.html?scene=${name}`;
+  node.src = `film/index.html?scene=${name}`;
   stage.insertBefore(node, message);
   (async () => {
     await new Promise(done => node.addEventListener('load', done, { once: true }));
     for (let tries = 0; tries < 200 && !node.contentWindow.__film; tries++) await new Promise(done => setTimeout(done, 25));
     const api = node.contentWindow.__film;
-    if (!api) throw new Error(`film/scenes/${name}.mjs did not start. Open /film/index.html?scene=${name} and look at the console.`);
+    if (!api) throw new Error(`film/scenes/${name}.mjs did not start. Open film/index.html?scene=${name} under this address and look at the console.`);
     entry.info = await api.ready;
     entry.api = api;
     const segment = segments.find(s => s.film === name && s.silent);
@@ -306,7 +318,7 @@ bar.addEventListener('pointerup', () => { bar.onpointermove = null; });
 
 // ------------------------------------------------------------ notes
 async function loadNotes() {
-  const text = await fetch('/notes').then(response => response.text()).catch(() => '');
+  const text = await fetch('notes').then(response => response.text()).catch(() => '');
   notes = [...text.matchAll(/^- \[( |x)\] (\S+) \((?:frame \d+)\) ([^:]+): (.*)$/gm)].map(([, done, at, where, body]) => {
     const [minutes, seconds] = at.split(':').map(Number);
     return { done: done === 'x', time: only ? null : minutes * 60 + seconds, at, where, body };
@@ -330,7 +342,7 @@ $('note').addEventListener('keydown', async event => {
   const line = `${stamp(time)} (frame ${Math.round(time * FPS)}) ${$('where').textContent}: ${event.target.value.trim()}`;
   event.target.value = '';
   event.target.blur();
-  await fetch('/notes', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ line }) });
+  await fetch('notes', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ line }) });
   loadNotes();
 });
 
@@ -359,7 +371,44 @@ addEventListener('keydown', event => {
 });
 
 // Saving a file in film/ reloads the page where it was.
-new EventSource('/events').onmessage = () => location.reload();
+new EventSource('events').onmessage = () => location.reload();
+
+// ------------------------------------------------------------ export
+// Export video and Quick draft run deliver.mjs on the server; the links
+// download the newest finished file. A reload while one runs picks it up.
+const size = n => n >= 1e6 ? `${(n / 1e6).toFixed(1)} MB` : `${Math.round(n / 1e3)} KB`;
+let exporting = null;
+function showExport(state) {
+  const job = $('job');
+  const what = state.draft ? 'Draft' : 'Export';
+  const log = state.log.join('\n');
+  $('export').disabled = $('draft').disabled = state.running;
+  job.textContent = state.running ? `${what} ${state.seconds}s: ${state.log.at(-1) || 'starting'}`
+    : state.ok === false ? `${what} failed. Click for its log.`
+    : state.ok ? `${what} done in ${state.seconds}s.` : '';
+  job.className = state.running ? 'running' : state.ok === false ? 'failed' : '';
+  job.title = log;
+  job.onclick = state.running || state.ok === false ? () => { say(`${log}\n\n(Click to close.)`, state.ok === false); message.dataset.log = '1'; } : null;
+  const files = [[state.video, 0], [state.draftVideo, 1]].filter(([video]) => video).sort(([a], [b]) => b.time - a.time);
+  $('downloads').innerHTML = '';
+  for (const [video, draft] of files) {
+    const link = document.createElement('a');
+    link.className = 'button';
+    link.href = `download?draft=${draft}`;
+    link.download = video.file;
+    link.textContent = `Download ${draft ? 'draft' : 'video'} (${size(video.size)})`;
+    link.title = `build/${video.file}, made ${new Date(video.time).toLocaleString()}`;
+    $('downloads').append(link, ' ');
+  }
+  clearTimeout(exporting);
+  if (state.running) exporting = setTimeout(checkExport, 1000);
+}
+const checkExport = () => fetch('export').then(response => response.json()).then(showExport).catch(() => {});
+const startExport = draft => fetch(`export?draft=${draft ? 1 : 0}`, { method: 'POST' }).then(response => response.json()).then(showExport);
+$('export').onclick = () => startExport(false);
+$('draft').onclick = () => startExport(true);
+message.addEventListener('click', () => { if (message.dataset.log) { delete message.dataset.log; say(''); } });
+checkExport();
 
 // For checks from a script: where the preview is and what it shows.
 window.__preview = {

@@ -20,6 +20,11 @@
 | A film in `build/` will not play in some players | Films for the edit are lossless on purpose. Only the composed video and `--clip` files are meant to be watched. |
 | First frames show a missing image | The scene did not wait: `await loadAssets([...])` and `await imagesDecoded()` before returning. |
 | A sheet shows the right state but the video looks wrong | Motion blur: a fast move needs a `fast: [[start, end]]` range. Or render that stretch alone: `--from 3 --to 4`. |
+| A sheet or still is stale after a render that printed its first line | The command was piped to PowerShell's `Select-Object -First n`, which stops it as soon as it has n lines. Use `-Last n`. |
+| `warning: "..." is cut off by N px at the side of .x` | The text is longer than its box. Shorten it, widen the box, or, if the cut is meant (a long path, a scrolling list), put `data-clip` on the box. "(the edge of the desktop)" means it runs past the stage itself. |
+| `warning: "..." runs N px off the frame` | Big text past the edge of the picture, usually under a camera move. Move the text or end the move sooner. |
+| `warning: the caption "..." covers the pointer` | Move the caption, or time it so it is gone before the pointer gets there. |
+| Every film is stale after a change to `card.mjs`, `film.js` or `graphics.mjs` that only touched comments or `info` | The cache cannot tell. Render `--stills` of a few scenes, compare with stills from before, and when nothing moved, `node render.mjs --all --stamp` marks every film up to date. |
 
 ## Composing
 
@@ -54,6 +59,22 @@
 | No sound | Browsers hold sound until the page is clicked once. Click Play. |
 | A short freeze at some cuts | The edit jumps in the recording there and the browser has to seek. The rendered video does not freeze. |
 | The preview looks sharper or softer than the render | The preview has no motion blur and is scaled by the browser. Judge timing and framing there, sharpness from a still. |
+| Export video says another export is running | One at a time. Click the status line beside the buttons to see its log. |
+| An export failed | Click the status line: the log shows the step that failed and its message, the same as `node deliver.mjs` would print. |
+| Download link is missing | Nothing has been exported yet. The links show the newest `build/<name>.mp4` and `build/<name>-draft.mp4`. |
+| The link shows another video, or a 404 that lists other videos | The address was not this project's. Each preview answers only at `http://127.0.0.1:4747/<its NAME>/`: use the `Preview:` line this project's `node preview.mjs` printed. `http://127.0.0.1:4747/` lists every preview that is running, with its folder. |
+| The address ends in `-2` | Another folder's video has the same `NAME` and started first. Both work. Give the project its own `NAME` in `film/edit.mjs` and start the preview again. |
+| `Port 4747 is held by something that is not this preview` | Another program has the port, so the video is on a port of its own until it is free (the line above the message is the address). Stop that program, or start every preview with the same `--port`. |
+| A project made before previews shared a port opens on 4173, 4174, ... | Its `preview.mjs` is the old one, which takes the next free port and serves at `/`. Copy `preview.mjs` and `lib/preview.html` from `SKILL/template` into it. |
+
+## Delivering
+
+| Symptom | Fix |
+| --- | --- |
+| `deliver.mjs` stops at a step | It runs render, compose, the sheet, captions and the made-up list in order and stops at the first failure. Fix that one and run it again: films already rendered are not rendered again. |
+| `The sound is silent` | The recording has no voice (a music-only or silent promo). That is fine: compose keeps the silent track and captions come from the lines on screen. |
+| `No part of the edit` from captions or `render --all --check` | `film/edit.mjs` has no parts yet. Fill `PARTS` first. |
+| The made-up list is missing something | Its definition has no `DRAWN` comment. Add one where the thing is defined (the constant, not every scene that uses it). |
 
 ## ffmpeg on this machine
 

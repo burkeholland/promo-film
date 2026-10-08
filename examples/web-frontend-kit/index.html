@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en" data-accent="azure" data-surface="flat" data-geometry="sharp" data-type="neutral" data-mode="light">
+<head>
+<meta charset="utf-8">
+<title>MirrorMe</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="ui.css">
+<!-- The film sets every moving thing from the time alone, so the app's own
+     animations and transitions are off. -->
+<style>*, *::before, *::after { animation: none !important; transition: none !important; caret-color: transparent; }
+/* The page is zoomed 2x (mirrorme.mjs) and the scroll bar's gutter is not, so
+   the 5 px it gives up are put back. */
+.shell { padding-right: 5px; }
+.film-caret { position: absolute; width: 1px; background: var(--text); pointer-events: none; }</style>
+</head>
+<body><div id="app"></div><script type="module" src="ui.js"></script></body>
+</html>

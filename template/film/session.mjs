@@ -3,7 +3,7 @@
 // works, and the composer stays at the bottom. Measured from screenshots 03
 // and 08 (assets/screens), in window px of our 1372 x 739 window.
 import { clamp, random, span } from './motion.mjs';
-import { DEFAULT_CHIP, FG, H, MUTED, NS, W, h, icon, label, logo, place, px } from './kit.mjs';
+import { DEFAULT_CHIP, FG, H, INTERACTIVE, MUTED, NS, W, h, icon, image, label, logo, place, px } from './kit.mjs';
 import { buildField } from './app.mjs';
 
 export const DETAIL = '#818b98';
@@ -13,7 +13,7 @@ export const SESSION_ICONS = [
   'git-merge', 'panel-right', 'file', 'file-code', 'file-pen', 'file-plus', 'folder-search', 'cpu', 'cloud-off', 'list-todo',
   'chevron-right', 'fold-vertical', 'search', 'file-text',
 ];
-export const SESSION_PLACEHOLDER = 'Ask anything. Use / for commands, @ files, & sessions, # issues...';
+export const SESSION_PLACEHOLDER = INTERACTIVE.session;
 
 const MAIN = 279;
 // The conversation column: about 723 wide (a bubble's 80% cap measures
@@ -26,9 +26,10 @@ const ROW = 28;
 const NEST = 22;
 // Space between neighbours, by kind: [above][below].
 const GAP = {
-  row: { row: 0, bubble: 10, md: 11 },
-  bubble: { row: 37, bubble: 37, md: 37 },
-  md: { row: 12, bubble: 37, md: 10 },
+  row: { row: 0, bubble: 10, md: 11, media: 6 },
+  bubble: { row: 37, bubble: 37, md: 37, media: 37 },
+  md: { row: 12, bubble: 37, md: 10, media: 12 },
+  media: { row: 6, bubble: 37, md: 12, media: 6 },
 };
 // The working spinner: a braille glyph, four dots that walk around a 2 x 3
 // cell, about 100 ms a step.
@@ -99,7 +100,7 @@ function buildComposer(page, { chip, placeholder, prompt, mode }) {
   const field = buildField(box, placeholder, prompt);
   const bar = place(h('div', 'cbar', box), 8, 58);
   icon(h('div', 'cbtn sq', bar), 'plus', 6.64, 6.64, 16, MUTED);
-  h('div', 'cbtn', bar, mode);
+  const modeChip = h('div', 'cbtn', bar, mode);
   const chipNode = h('div', 'cbtn', bar, chip);
   // Right side items keep the home composer's distances from the right edge.
   const right = COMPOSER.w - 766;
@@ -116,7 +117,89 @@ function buildComposer(page, { chip, placeholder, prompt, mode }) {
     stop.style.visibility = on ? 'inherit' : 'hidden';
   };
   running(false);
-  return { box, chip: chipNode, send, running, ...field };
+  return { box, chip: chipNode, mode: modeChip, send, running, ...field };
+}
+
+// ---------------------------------------------------------------- question
+// The card the app shows above the composer when Copilot stops to ask
+// (UserInputPrompt.tsx in the app's source): a "Question" heading, the
+// question, one row per choice with its letter, a row to type another answer
+// and the Skip and Continue buttons. The first choice starts out selected.
+// `question` takes `code` in backticks. Sizes are the source's: a 12 px
+// radius, 16 px side padding on the text, 32 px rows, 28 px buttons, and
+// 12 px between the card and the composer.
+export const QUESTION_GAP = 12;
+export function buildQuestion(page, { question, choices }) {
+  const card = h('div', 'askcard', page);
+  place(card, COMPOSER.x, 0, COMPOSER.w);
+  h('div', 'askhead', card, 'Question');
+  const text = h('div', 'asktext', card);
+  for (const part of question.split(/(`[^`]+`)/)) {
+    if (!part) continue;
+    if (part.startsWith('`')) h('code', null, text, part.slice(1, -1));
+    else text.append(part);
+  }
+  const list = h('div', 'askopts', card);
+  const letter = i => String.fromCharCode(65 + i);
+  const rows = choices.map((choice, i) => {
+    const row = h('div', 'askopt', list);
+    h('span', 'askkey', row, letter(i));
+    h('span', null, row, choice);
+    return row;
+  });
+  const own = h('div', 'askopt', list);
+  h('span', 'askkey', own, letter(choices.length));
+  h('span', 'askhint', own, 'Or type your own answer…');
+  const foot = h('div', 'askfoot', card);
+  const button = (cls, name, key) => {
+    const b = h('div', `askbtn ${cls}`, foot, name);
+    h('kbd', null, b, key);
+    return b;
+  };
+  button('', 'Skip', 'Esc');
+  button('primary', 'Continue', 'Enter');
+  // The card grows up from just above the composer.
+  const height = card.offsetHeight;
+  const top = COMPOSER.y - QUESTION_GAP - height;
+  card.style.top = px(top);
+  card.style.transformOrigin = '50% 100%';
+  const box = node => ({ x: COMPOSER.x + node.offsetLeft, y: top + node.offsetTop, w: node.offsetWidth, h: node.offsetHeight });
+  // Which choices look picked: the one the app selected and the one under
+  // the pointer both take the muted fill.
+  const mark = (selected, hover) => rows.forEach((row, i) => row.classList.toggle('on', i === selected || i === hover));
+  return { card, rows, own, top, h: height, lift: height + QUESTION_GAP, boxes: rows.map(box), mark };
+}
+
+// The card the app shows before Copilot takes control of an app: a title,
+// a line on what it will be able to do, and numbered choices, the first one
+// focused with ⏎ at its end. Made up, not from a screenshot: it is drawn in
+// the permission card's style (the question card's sizes and colors). A
+// video that shows it lists it as made up where it uses it (tools/madeup.mjs).
+export function buildApproval(page, { title, body, choices }) {
+  const card = h('div', 'askcard', page);
+  place(card, COMPOSER.x, 0, COMPOSER.w);
+  const head = h('div', 'apphead', card);
+  icon(head, 'shield-check', 16, 10, 16, '#59636e');
+  h('span', null, head, title);
+  h('div', 'asktext', card, body);
+  const list = h('div', 'askopts', card);
+  const rows = choices.map((choice, i) => {
+    const row = h('div', 'askopt', list);
+    h('span', 'askkey', row, String(i + 1));
+    h('span', null, row, choice);
+    h('span', 'appenter', row, '⏎');
+    return row;
+  });
+  const height = card.offsetHeight;
+  const top = COMPOSER.y - QUESTION_GAP - height;
+  card.style.top = px(top);
+  card.style.transformOrigin = '50% 100%';
+  const box = node => ({ x: COMPOSER.x + node.offsetLeft, y: top + node.offsetTop, w: node.offsetWidth, h: node.offsetHeight });
+  const mark = (focused, down) => rows.forEach((row, i) => {
+    row.classList.toggle('on', i === focused);
+    row.classList.toggle('down', i === down);
+  });
+  return { card, rows, top, h: height, lift: height + QUESTION_GAP, boxes: rows.map(box), mark };
 }
 
 // ---------------------------------------------------------------- markdown
@@ -193,11 +276,12 @@ function makeTimeline(page, bottom) {
   };
 
   // A row: an icon (or a logo, or nothing) and its text. Text parts after
-  // the title: `detail` after a middle dot, `code` in a monospace font,
+  // the title: `detail` after a middle dot, `arg` (a tool's first argument,
+  // like a computer use row's `app: MSEdge`), `code` in a monospace font,
   // `effort` (a model's reasoning effort) and `took` (how long a command
-  // ran, after a middle dot), all lighter. `diff` is [added, removed]
-  // lines, in green and red (screenshot 04).
-  const row = ({ icon: name, logo: brand, color = TL_ICON, text, detail, code, effort, took, diff, nest = 0 }) => {
+  // ran, or how much it returned, after a middle dot), all lighter. `diff`
+  // is [added, removed] lines, in green and red (screenshot 04).
+  const row = ({ icon: name, logo: brand, color = TL_ICON, text, detail, arg, code, effort, took, diff, nest = 0 }) => {
     const x = x0 + nest * NEST;
     const node = place(h('div', 'trow', content), x, 0, COL.w - nest * NEST, ROW);
     if (name) icon(node, name, 0, 6, 16, color);
@@ -214,6 +298,7 @@ function makeTimeline(page, bottom) {
       h('span', 'dot', line, '·');
       h('span', 'd', line, detail);
     }
+    if (arg) h('span', 'arg', line, arg);
     if (code) h('span', 'code', line, code);
     if (effort) h('span', 'effort', line, effort);
     if (took) {
@@ -227,6 +312,30 @@ function makeTimeline(page, bottom) {
     return add({ kind: 'row', nest, line }, node);
   };
   const model = (m, provider, opts = {}) => row({ logo: m.logo, text: `Model ${opts.will ? 'will change' : 'changed'} to ${m.name} · ${provider}`, effort: 'Medium', ...opts });
+  // Copilot stopping to ask: a comment icon, "Asking user:" and the question,
+  // lighter and cut short with an ellipsis. `asked.answered(on)` turns the
+  // label into "Asked user:" once there is an answer.
+  const ask = question => {
+    const item = row({ icon: 'message-circle', text: 'Asking user:' });
+    const name = item.line.firstChild;
+    h('span', 'q', item.line, question);
+    item.answered = on => {
+      const text = on ? 'Asked user:' : 'Asking user:';
+      if (name.textContent !== text) name.textContent = text;
+    };
+    return item;
+  };
+  // The answer under it: a curved line down from the question's icon, the
+  // person's picture, "Answer:" and what they chose.
+  const answer = (text, picture = 'assets/avatar.png') => {
+    const item = row({ text: 'Answer:' });
+    h('i', 'aline', item.node);
+    image(item.node, 'avatar', picture, 20, 7, 14, 14);
+    item.line.style.left = px(42);
+    item.line.style.maxWidth = px(COL.w - 42);
+    h('span', 'q', item.line, text);
+    return item;
+  };
   // A sub agent: later rows with `nest: 1` hang under it, joined by a line.
   const agent = opts => {
     const item = row(opts);
@@ -234,6 +343,23 @@ function makeTimeline(page, bottom) {
     open = { parent: item, rows: [], line };
     groups.push(open);
     return item;
+  };
+  // Pictures a tool returned, under its row and in line with its words:
+  // square thumbnails in a line under "View N images" (96 x 96), or one
+  // screenshot at its own shape, at most 440 x 288. `sizes` is [w, h] for
+  // each; `draw(tile, i)` fills a tile. Tiles have 6 px corners and a hairline
+  // edge.
+  const media = (sizes, draw, { nest = 0, gap = 8 } = {}) => {
+    const height = Math.max(...sizes.map(s => s[1]));
+    const node = place(h('div', 'trow', content), x0 + 22 + nest * NEST, 0, COL.w - 22 - nest * NEST, height);
+    let x = 0;
+    const tiles = sizes.map(([w, th], i) => {
+      const tile = place(h('div', 'tlthumb', node), x, 0, w, th);
+      x += w + gap;
+      draw(tile, i);
+      return tile;
+    });
+    return add({ kind: 'media', nest, tiles, h: height }, node);
   };
   const bubble = text => {
     const wrap = place(h('div', 'bwrap', content), x0, 0, COL.w);
@@ -264,7 +390,9 @@ function makeTimeline(page, bottom) {
   const workNode = place(h('div', 'trow', content), x0, 0, COL.w, ROW);
   const workSpin = spinner(workNode, 8, 13.9);
   const workText = label(workNode, '', 22, 4, { color: MUTED });
-  const work = { from: Infinity, to: Infinity, elapsed: t => t - work.from };
+  // `on(t)` says when it shows: from `from` to `to` unless a scene gives
+  // its own, to hide it while a card waits on the person.
+  const work = { from: Infinity, to: Infinity, elapsed: t => t - work.from, on: t => t >= work.from && t < work.to };
   const clockText = s => {
     s = Math.max(0, Math.floor(s));
     if (s < 60) return `${s}s`;
@@ -295,7 +423,7 @@ function makeTimeline(page, bottom) {
     const last = lastShown(t);
     if (!last) return FIRST - VIEW_TOP;
     let y = last.y + bottomOf(last, t);
-    if (t >= work.from && t < work.to) y += GAP[last.kind].row + ROW;
+    if (work.on(t)) y += GAP[last.kind].row + ROW;
     return y;
   };
 
@@ -333,7 +461,7 @@ function makeTimeline(page, bottom) {
       g.line.style.visibility = seen.length ? 'inherit' : 'hidden';
       if (seen.length) g.line.style.height = px(seen.at(-1).y + 22 - (g.parent.y + ROW));
     }
-    const working = t >= work.from && t < work.to;
+    const working = work.on(t);
     workNode.style.visibility = working ? 'inherit' : 'hidden';
     if (working) {
       const last = lastShown(t);
@@ -352,11 +480,11 @@ function makeTimeline(page, bottom) {
     return { x: MAIN + (item.nest || 0) * NEST + x0, y: VIEW_TOP + item.y - s, w: COL.w, h: item.h };
   };
 
-  return { view, content, items, row, model, agent, bubble, md, stream, work, finish, pose, where, end };
+  return { view, content, items, row, model, ask, answer, agent, media, bubble, md, stream, work, finish, pose, where, end };
 }
 
 // ---------------------------------------------------------------- page
-export function buildSession(ui, { title = 'New session', branch = 'local-auto/master', chip = DEFAULT_CHIP, mode = 'Interactive', placeholder = SESSION_PLACEHOLDER, prompt = '' } = {}) {
+export function buildSession(ui, { title = 'New session', branch = 'local-auto/master', chip = DEFAULT_CHIP, mode = INTERACTIVE.label, placeholder = SESSION_PLACEHOLDER, prompt = '' } = {}) {
   const page = h('div', 'layer', ui);
   const header = buildHeader(page, { title, branch });
   const composer = buildComposer(page, { chip, placeholder, prompt, mode });

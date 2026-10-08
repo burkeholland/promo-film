@@ -1,0 +1,58 @@
+/* Append to film/film.css. The styles browser.mjs draws with. */
+/* A receipt photo, drawn: paper on a dark table. */
+.rcpt { position: absolute; inset: 0; background: #3b3f45; }
+.rcpt .paper { position: absolute; background: #fbfaf6; box-shadow: 0 1px 3px rgba(0, 0, 0, .4); }
+.rcpt .ln { position: absolute; height: 2px; border-radius: 1px; background: #b8b4ab; }
+.rcpt .ln.b { height: 3px; background: #6d6a63; }
+
+/* Microsoft Edge, Windows 11 light. DRAWN. */
+.edge { position: absolute; overflow: hidden; border-radius: 8px; background: #f7f7f7; font-family: "Segoe UI", sans-serif;
+  box-shadow: 0 0 0 .5px rgba(0, 0, 0, .18), 0 4px 10px rgba(0, 0, 0, .14), 0 14px 36px rgba(0, 0, 0, .24); }
+.edge .tabs { position: absolute; left: 0; top: 0; right: 0; height: 41px; background: #ebebeb; }
+.edge .tab { position: absolute; top: 6px; height: 35px; border-radius: 8px 8px 0 0; background: #f7f7f7; }
+.edge .tab .t { position: absolute; left: 34px; top: 8px; font-size: 12px; line-height: 18px; color: #1a1a1a; white-space: nowrap; }
+.edge .fav { position: absolute; width: 16px; height: 16px; border-radius: 4px; background: #0f6cbd; color: #fff; font-size: 10px; line-height: 16px; font-weight: 700; text-align: center; }
+.edge .tbar { position: absolute; left: 0; top: 41px; right: 0; height: 40px; background: #f7f7f7; border-bottom: 1px solid #e0e0e0; }
+.edge .addr { position: absolute; top: 5px; height: 30px; border-radius: 15px; background: #fff; box-shadow: inset 0 0 0 1px #e3e3e3; }
+.edge .addr.focus { box-shadow: inset 0 0 0 2px #0f6cbd; }
+.edge .addr .u { position: absolute; left: 34px; top: 5px; font-size: 13px; line-height: 20px; color: #1a1a1a; white-space: nowrap; }
+.edge .addr .u .host { color: #1a1a1a; }
+.edge .addr .u .path { color: #707070; }
+.edge .bar { position: absolute; left: 0; top: 81px; height: 2px; background: #0f6cbd; }
+.edge .view { position: absolute; left: 0; top: 81px; right: 0; bottom: 0; overflow: hidden; background: #fff; }
+.edge .caret { position: absolute; width: 1px; background: #1a1a1a; }
+.edge .ntp { position: absolute; inset: 0; background: #f7f9fc; }
+.edge .ntp .sb { position: absolute; height: 44px; border-radius: 22px; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .14); }
+
+/* Contoso Expenses: a made-up expense site. DRAWN. */
+.cx { position: absolute; inset: 0; font-size: 13px; line-height: 20px; color: #242424; }
+.cx .top { position: absolute; left: 0; top: 0; right: 0; height: 48px; background: #0f6cbd; color: #fff; }
+.cx .top .brand { position: absolute; left: 46px; top: 13px; font-size: 15px; line-height: 22px; font-weight: 600; white-space: nowrap; }
+.cx .top .me { position: absolute; top: 10px; width: 28px; height: 28px; border-radius: 50%; background: #c7e0f4; color: #0f548c; font-size: 11px; line-height: 28px; font-weight: 600; text-align: center; }
+.cx .h1 { position: absolute; font-size: 20px; line-height: 28px; font-weight: 600; white-space: nowrap; }
+.cx .crumb { position: absolute; font-size: 12px; line-height: 16px; color: #616161; white-space: nowrap; }
+.cx .btn { position: absolute; height: 32px; padding: 0 12px; border-radius: 4px; font-size: 13px; line-height: 32px; font-weight: 600; white-space: nowrap; background: #fff; color: #242424; box-shadow: inset 0 0 0 1px #d1d1d1; }
+.cx .btn.primary { background: #0f6cbd; color: #fff; box-shadow: none; }
+.cx .btn .ic { position: relative; display: inline-block; vertical-align: -3px; margin-right: 6px; }
+.cx .btn.down { background: #e0e0e0; }
+.cx .btn.primary.down { background: #0c3b5e; }
+.cx .btn.off { background: #f0f0f0; color: #bdbdbd; }
+.cx .lbl { position: absolute; font-size: 12px; line-height: 16px; font-weight: 600; color: #424242; white-space: nowrap; }
+.cx .inp { position: absolute; height: 32px; border-radius: 4px; background: #fff; box-shadow: inset 0 0 0 1px #d1d1d1, inset 0 -1px 0 #616161; }
+.cx .inp .v { position: absolute; left: 10px; top: 6px; white-space: nowrap; }
+.cx .inp .ph { position: absolute; left: 10px; top: 6px; white-space: nowrap; color: #707070; }
+.cx .inp.sel::after { content: ""; position: absolute; right: 12px; top: 11px; width: 6px; height: 6px; border-right: 1.5px solid #616161; border-bottom: 1.5px solid #616161; transform: rotate(45deg); }
+.cx .focus { box-shadow: inset 0 0 0 1px #d1d1d1, inset 0 -2px 0 #0f6cbd, 0 0 0 2px rgba(15, 108, 189, .35); }
+.cx .btn.focus { box-shadow: 0 0 0 2px #0f6cbd; }
+.cx .th { position: absolute; font-size: 12px; line-height: 16px; font-weight: 600; color: #616161; white-space: nowrap; }
+.cx .td { position: absolute; white-space: nowrap; }
+.cx .rule { position: absolute; height: 1px; background: #e0e0e0; }
+.cx .pill { position: absolute; height: 20px; padding: 0 8px; border-radius: 10px; font-size: 12px; line-height: 20px; white-space: nowrap; }
+.cx .pill.ok { background: #f1faf1; color: #0e700e; box-shadow: inset 0 0 0 1px #9fd89f; }
+.cx .pill.wait { background: #fff9f5; color: #bc4b09; box-shadow: inset 0 0 0 1px #fdcfb4; }
+.cx .file { position: absolute; height: 24px; padding: 0 8px 0 26px; border-radius: 4px; background: #f5f5f5; font-size: 12px; line-height: 24px; color: #424242; white-space: nowrap; }
+.cx .file .ic { left: 7px; top: 4px; }
+.cx .banner { position: absolute; height: 40px; border-radius: 4px; background: #f1faf1; box-shadow: inset 0 0 0 1px #9fd89f; color: #0e700e; font-weight: 600; white-space: nowrap; }
+.cx .banner .t { position: absolute; left: 38px; top: 10px; }
+.cx .banner .ic { left: 12px; top: 12px; }
+.cx .total { position: absolute; font-size: 14px; line-height: 20px; font-weight: 600; white-space: nowrap; }

@@ -39,3 +39,39 @@ every scene. Copy their builders, shots and choreography, and time them with `T.
 
 `blog-top.mjs` needs a picture that is not in the template (`assets/blog-top.png`, a tall
 screenshot of a web page).
+
+## `computer-use/`
+
+A finished 55 s promo with no voice: Copilot fills in an expense report in Microsoft Edge. Its
+`README.md` says how to copy it into a project.
+
+- `browser.mjs`: Edge and a web form, drawn by hand. Its classes are in `film-additions.css`
+  (append it to `film/film.css`).
+- `story.mjs`: one task's state and beats shared by four scenes, so the scenes cut together.
+- `scenes/title.mjs`, `scenes/end.mjs`: cards written as data with `film/card.mjs`.
+- `edit.mjs`: an edit over a silent track, with captions made from the lines on screen.
+
+## `web-frontend-kit/`
+
+A kit for an app whose interface is a web page (Wails, Electron, Tauri) and whose source is at
+hand. It does not redraw the app: each state is a frame running the app's own render code and
+style sheets. From a 43 s promo for MirrorMe with no voice.
+
+- `build-ui.mjs`: bundles the app's frontend (its render function, its state object, its CSS)
+  into `film/ui/` with the Vite that is already in the app's `node_modules`.
+- `index.html`: the page each frame loads. It turns the app's animations off, since the film sets
+  everything from the time.
+- `mirrorme.mjs`: `buildApp(stage).view(state)` puts one state of the app on screen and returns
+  `q()` and `box()` for its nodes. Also here: twins of every `:hover`, `:active` and `:focus`
+  rule that match a class (the drawn pointer never triggers the real ones), a typed text field
+  with a drawn caret, a drawn drop-down list, and a second, native window drawn by hand.
+- `settings.mjs`: a scene on that kit. Five views, five clicks.
+
+Three things it had to solve, each of which will come up again:
+
+1. A frame's text goes soft under the camera. Lay the frame out at twice the size (`zoom: 2`
+   inside, `scale(.5)` outside) and measure boxes against the page's width.
+2. A page that changes in the middle of a frame is blended with the one before it by the motion
+   blur, as a one frame ghost. `onFrame(time)` moves the change to between two frames.
+3. A pipeline that ends in `Select-Object -First n` stops `render.mjs` before it has written its
+   pictures. Collect the output first (`| Out-String`).

@@ -136,6 +136,52 @@ The first line printed is the scene's `info`. Pictures go to `build/stills/`. Ch
 what is in frame at the first and last frame (those are the cuts), that nothing is clipped at the
 frame's edge, that the pointer is where the highlight is, and that text is the right text.
 
+The renderer checks some of this for you. At a dozen moments of every film it opens, it prints a
+`warning:` line for:
+
+- text cut off at the side of a box that clips it (a title too long for its row, a label under
+  the next column, or anything past the edge of the desktop);
+- big text (20 px and up: headlines, captions) running off the frame;
+- a caption (`.cap`) over the pointer.
+
+Each warning names the text, the box and how many pixels. Fix it in the builder or the scene.
+Text that is meant to be cut (a long path with an ellipsis, a list that scrolls) goes inside an
+element with `data-clip`, and is not checked. `deliver.mjs` lists every warning in the delivery
+summary, so none ships unseen.
+
+## Cards from data (`card.mjs`)
+
+A title or end card is not worth a scene's worth of code. `card(name, { blocks, center, zoom,
+glow, duration })` returns the whole scene: the dark board, a slow camera creep, and blocks that
+come in top to bottom.
+
+```js
+import { card } from '../card.mjs';
+import { COPILOT } from '../kit.mjs';
+import { DIM, LIGHT_PURPLE } from '../graphics.mjs';
+export default card('title', {
+  center: 418,
+  blocks: [
+    { app: COPILOT, y: 233, at: .15 },
+    { words: ['Copilot can now use', 'your desktop apps.'], y: 318, at: .5, size: 88 },
+    { words: '[Computer] [Use] in the app.', y: 588, at: 2.1, size: 31, color: DIM, accent: LIGHT_PURPLE },
+  ],
+});
+```
+
+- `{ app }`: the app's icon with a line beside it.
+- `{ words }`: one line or a list of lines of rising words; a word in `[brackets]` is in `accent`.
+- `{ setting: { name, about }, flip }`: a large settings row whose switch turns on at `flip`.
+
+Do not time every word on a card to the voice. A word by word headline is for one or two short
+places in a video; a subtitle sums the sentence up and fades in whole (direction.md, "Words on
+screen").
+
+`at` is seconds from the start of the card. `duration` is only for a
+card the edit does not play yet. The comment at the top of `film/card.mjs` lists every option.
+A card with a chart or a screenshot on it is a hand-written scene: copy one that uses `card` and
+add to it.
+
 ## What the errors mean
 
 | Error | Cause and fix |
@@ -145,5 +191,5 @@ frame's edge, that the pointer is where the highlight is, and that text is the r
 | `"..." is said N times` | Add the words around it, or `nth`. |
 | `A click at T s happens while the pointer moves` | A fixed time met a cue. Time the move back from the click. |
 | `Pointer moves i and j overlap` | The same, between two moves. |
-| `The film reported a problem: ...` | An exception or a 404 in the page. A missing icon means it was not passed to `loadAssets([...])`. |
+| `The film reported a problem: ...` | An exception or a 404 in the page. A missing icon is downloaded from Lucide the first time it is asked for; a 404 for an icon means the name is not a Lucide icon (check it at lucide.dev). |
 | `has N frames, but the edit needs M` | The edit changed after the film was rendered: `node render.mjs --all`. |

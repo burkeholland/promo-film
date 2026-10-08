@@ -13,6 +13,8 @@ words is not proof: it read "including" correctly from a cut that had lost "-din
 ## Loudness and cleanup
 
 - compose measures the voice, turns it to -14 LUFS and holds peaks at -1.5 dBFS with a limiter.
+  When the finished video still reports a true peak over -1 dBFS (a voice that leans on the
+  limiter, lifted again by the AAC encode), set `PEAK` in `film/edit.mjs` lower, about -2.2.
   That is right for a raw recording.
 - **Sound that was already cleaned up gets one plain gain and no limiting.** When compose prints
   "the limiter takes up to N dB off", and the sound came from Adobe Podcast or a mastered
@@ -21,6 +23,14 @@ words is not proof: it read "including" correctly from a cut that had lost "-din
 - **Never run a cleanup tool on a finished cut.** The cut's sound has already been turned up into
   the limiter, and turning it up again afterwards doubles that. The person hears it as "not
   cleaned up". Clean the recording first, then build on the cleaned recording.
+- To clean it yourself, use the `adobe-podcast` skill: it runs the recording through Adobe
+  Podcast in Edge and its "In a promo-film project" section is the rest of this list as steps.
+- **Cleaned audio is the same take. Do not work anything out again.** When the cleaned file is
+  the same length and `tools/align.py` puts it at `+0.000s`, `film/words.mjs` stays, nothing is
+  transcribed, no film is rendered (`render.mjs --all --stamp`) and only `compose.mjs` runs. The
+  three checks at the top of this page are for sound whose words or timing changed (a splice, a
+  re-cut), not for a cleanup. The same file is never sent to Adobe twice either: the skill keeps
+  what came back.
 - If the person cleans the audio themselves, ask for that file and use its sound as the
   recording. If it is a re-cut too, see "The person re-cut the take" below.
 - A cleanup tool (Adobe Podcast Enhance and the like) returns sound several dB quieter than what
