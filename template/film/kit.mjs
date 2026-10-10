@@ -20,11 +20,13 @@ export const HINT = '#a4aab1';
 export const NS = 'http://www.w3.org/2000/svg';
 
 // ---------------------------------------------------------------- models
-// Fable, GPT-5.6 Sol and the last three cards are placeholder numbers.
+// Fable, GPT-6 Sol, GPT-5.6 Sol and the last three cards are placeholder numbers.
+// The picker never shows an EAP model or GPT-5.6 Sol Fast: both are internal.
 export const OPUS = { name: 'Claude Opus 5.5', logo: 'anthropic', context: '328K · 1.1M', reasoning: '5 levels', input: '400', cached: '20', output: '2,000' };
 export const FABLE = { name: 'Fable 5.1', logo: 'anthropic', context: '1M', reasoning: '5 levels', input: '600', cached: '60', output: '3,000' };
 export const SONNET = { name: 'Claude Sonnet 5.5', logo: 'anthropic', context: '328K · 1.1M', reasoning: '5 levels', input: '200', cached: '20', output: '1,000' };
 export const SOL = { name: 'GPT-6.1 Sol', logo: 'openai', context: '400K · 1.1M', reasoning: '6 levels', input: '200', cached: '10', output: '1,000' };
+export const SOL6 = { name: 'GPT-6 Sol', logo: 'openai', context: '400K · 1.1M', reasoning: '6 levels', input: '175', cached: '15', output: '875' };
 export const SOL56 = { name: 'GPT-5.6 Sol', logo: 'openai', context: '400K · 1.1M', reasoning: '6 levels', input: '150', cached: '15', output: '750' };
 export const ASTRA = { name: 'GPT-6 Astra', logo: 'openai', context: '400K · 1.2M', reasoning: '5 levels', input: '1,000', cached: '100', output: '5,000' };
 export const GEMINI = { name: 'Gemini 3.8 Flash', logo: 'google', context: '1M', reasoning: '4 levels', input: '50', cached: '5', output: '300' };
@@ -32,12 +34,12 @@ export const GROK = { name: 'Grok 4.7', logo: 'xai', context: '256K · 2M', reas
 export const KIMI = { name: 'Kimi K3', logo: 'moonshot', context: '256K', reasoning: '2 levels', input: '60', cached: '15', output: '250' };
 // The order of the picker: the four the opening names, in the order it names
 // them, then the rest.
-export const MODELS = [OPUS, ASTRA, FABLE, SOL, SOL56, SONNET, GEMINI, GROK, KIMI];
+export const MODELS = [OPUS, ASTRA, FABLE, SOL, SOL6, SOL56, SONNET, GEMINI, GROK, KIMI];
 // The model the app is on when a scene opens: the composer's chip, the menu's
 // Model and Context window rows, and the check mark in the list. It is
-// GPT-5.6 Sol unless the person names another model for the video. Change
+// GPT-6 Sol unless the person names another model for the video. Change
 // it here, never in a scene, and keep it in MODELS so it has a row to check.
-export const DEFAULT_MODEL = SOL56;
+export const DEFAULT_MODEL = SOL6;
 export const DEFAULT_CHIP = `${DEFAULT_MODEL.name} · Medium`;
 
 // HydraFusion and Aion Flash aren't in the app yet, so their rows follow the

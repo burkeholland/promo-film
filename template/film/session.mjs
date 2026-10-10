@@ -66,7 +66,7 @@ function terminalApp(parent, x, y) {
   return place(svg, x, y);
 }
 
-function buildHeader(page, { title, branch }) {
+function buildHeader(page, { title, branch, commit: changed = 2 }) {
   const head = place(h('div', 'shead', page), MAIN + 13, 26.2);
   const name = h('span', 't', head, title);
   h('span', 'hs', head, '·');
@@ -86,7 +86,7 @@ function buildHeader(page, { title, branch }) {
   chevron(term, 35);
   const commit = button(1093.2, 98);
   icon(commit, 'git-commit-horizontal', 7, 5, 16, FG);
-  label(commit, 'Commit (2)', 26.7, 3, { size: 12.5 });
+  label(commit, `Commit (${changed})`, 26.7, 3, { size: 12.5 });
   const merge = button(1195.7, 136, 108);
   icon(merge, 'git-merge', 7, 5, 16, FG);
   label(merge, 'Agent merge', 27.3, 3, { size: 12.5 });
@@ -250,12 +250,12 @@ function bursts(n, t0, t1, seed) {
 // What Copilot did, top to bottom. Items are laid out as they're added; each
 // shows from its `at` time. The view sticks to the bottom as items arrive,
 // scrolling there smoothly.
-function makeTimeline(page, bottom) {
-  const view = place(h('div', 'tlview', page), MAIN, VIEW_TOP, W - MAIN, bottom - VIEW_TOP);
+export function makeTimeline(page, bottom, top = VIEW_TOP) {
+  const view = place(h('div', 'tlview', page), MAIN, top, W - MAIN, bottom - top);
   const content = place(h('div', 'tlcontent', view), 0, 0, W - MAIN);
   const fadeH = 30;
-  place(h('div', 'tlfade', view), 0, bottom - VIEW_TOP - fadeH, W - MAIN, fadeH);
-  const viewH = bottom - VIEW_TOP;
+  place(h('div', 'tlfade', view), 0, bottom - top - fadeH, W - MAIN, fadeH);
+  const viewH = bottom - top;
   const x0 = COL.x - MAIN;
   const items = [];
   const groups = [];
@@ -477,16 +477,16 @@ function makeTimeline(page, bottom) {
   // Where an item is on screen at t, in window px.
   const where = (item, t) => {
     const s = scroll ? scroll[clamp(Math.round(t * 1000), 0, scroll.length - 1)] : 0;
-    return { x: MAIN + (item.nest || 0) * NEST + x0, y: VIEW_TOP + item.y - s, w: COL.w, h: item.h };
+    return { x: MAIN + (item.nest || 0) * NEST + x0, y: top + item.y - s, w: COL.w, h: item.h };
   };
 
   return { view, content, items, row, model, ask, answer, agent, media, bubble, md, stream, work, finish, pose, where, end };
 }
 
 // ---------------------------------------------------------------- page
-export function buildSession(ui, { title = 'New session', branch = 'local-auto/master', chip = DEFAULT_CHIP, mode = INTERACTIVE.label, placeholder = SESSION_PLACEHOLDER, prompt = '' } = {}) {
+export function buildSession(ui, { title = 'New session', branch = 'local-auto/master', commit, chip = DEFAULT_CHIP, mode = INTERACTIVE.label, placeholder = SESSION_PLACEHOLDER, prompt = '' } = {}) {
   const page = h('div', 'layer', ui);
-  const header = buildHeader(page, { title, branch });
+  const header = buildHeader(page, { title, branch, commit });
   const composer = buildComposer(page, { chip, placeholder, prompt, mode });
   const tl = makeTimeline(page, COMPOSER.y - 6);
   // The composer is drawn above the timeline's fade.

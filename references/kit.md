@@ -38,9 +38,14 @@ its own render code in frames, one per state. `examples/web-frontend-kit/` is th
 | `kit.mjs` | Sizes (`DW`, `DH`, `WIN`, `W`, `H`), the app's colors, **the model list, every model name and `DEFAULT_MODEL`** (the model the app is on), DOM helpers (`h`, `place`, `label`, `value`, `icon`, `logo`, `image`, `rect`, `inside`, `mix`), `loadAssets(icons, pictures)`, `imagesDecoded()` |
 | `app.mjs` | The desktop, the window and sidebar, the home page and composer, the model picker (menu, Auto switch and levels, model list, details card), a Windows toast, the arrow and I-beam pointers, popup motion, and `film(stage, shot)` |
 | `session.mjs` | The session page: header, composer with stop button, and the timeline (tool rows, model changes, sub agents, user bubbles, streamed markdown replies, the working spinner, auto scroll) |
+| `automations.mjs` | A populated Automations gallery with source filters, automation cards and recent runs. Source-informed layout, not yet screenshot-matched. New running entries preserve previous completed runs. |
+| `automation-dialog.mjs` | A source-informed creation dialog and reusable menus, including multi-select check marks. Local and cloud controls share a stable footer. |
+| `automation-run.mjs` | A source-informed cloud run conversation, revision, narrow timeline lane, and sidebar status badges. Run steps and counts are passed in, not built into the screen. |
 | `windows.mjs` | The Windows 11 taskbar that slides up, and the quick settings flyout (Wi-Fi, Bluetooth, Airplane mode) |
+| `edge.mjs` | Microsoft Edge on Windows 11 (light): one tab, toolbar and address bar, drawn, not screenshot-matched. `buildEdge(parent, { x, y, w, h })`, then `pose({ title, url, focus, selected, closing })` each frame; the page inside is the caller's, built into the returned `view`. Load `EDGE_ICONS`. |
+| `minimize.mjs` | The app minimizing to its taskbar button and coming back, drawn. `buildMinimize(win)` and `poseMinimize(...)` (the button lights, the window shrinks away), `poseRestore(...)` (it grows back). |
 | `graphics.mjs` | A dark GitHub board for title cards and charts: Mona Sans, grain, glow, SVG helpers, `arrive()` |
-| `card.mjs` | Title and end cards from data: `card(name, { blocks })` is the whole scene (see `references/scenes.md`) |
+| `card.mjs` | Title and end cards from data: `card(name, { blocks })` is the whole scene (see `references/scenes.md`). Blocks are `{ app }`, `{ words }`, `{ setting }` and `{ automation }` (an automation as a card that shows running, then what it did); any block takes `move: { at, dy, dur }` to slide down or up from `at`. |
 | `film.css` | Every class the builders use |
 | `assets/` | Wallpaper, app icon, avatar, provider logos, fonts, and Lucide icons in `icons/`. Name any Lucide icon and it is downloaded the first time it is asked for (or ahead of time: `node tools/icons.mjs NAME ...`). |
 
@@ -56,8 +61,8 @@ const { ui, pops, session, showSession, navHover } =
 //  showSession(true, false): the session is listed, but the highlight stays on the page the app is on
 //  navRect(i): where sidebar row i is
 
-// The model the app is on is kit.mjs's DEFAULT_MODEL (GPT-5.6 Sol) wherever a scene does not
-// pass one: buildHome's and buildSession's chip (DEFAULT_CHIP, "GPT-5.6 Sol · Medium"),
+// The model the app is on is kit.mjs's DEFAULT_MODEL (GPT-6 Sol) wherever a scene does not
+// pass one: buildHome's and buildSession's chip (DEFAULT_CHIP, "GPT-6 Sol · Medium"),
 // buildMenu's second argument and buildList's third.
 const home = buildHome(ui, { chip, project, branch, mode });
 //  home.page  home.composer  home.chip  home.send  home.cards
@@ -68,9 +73,11 @@ const { fly, flyHl, rows } = buildList(pops, [[COPILOT, MODELS], [OTHERS, LOCAL]
 const { card, show } = buildCard(pops);           // show(model) fills the details card
 const L = layoutPicker({ chip: home.chip, menu: picker.menu, fly, card, rows });
 //  L.chip  L.menu  L.fly  L.rowMid(i)  L.cardX  L.cardTop(i)
+//  Omit card when no model details should be displayed.
 setAuto(picker, autoState(t, false, [[clickTime, true]]));   // the Auto switch and its levels
 menuRowAt(L, p)  autoRowAt(L, p)  listRowAt(L, p)            // which row the pointer is on (desktop p)
 placeMenuHl(picker.menuHl, row)  placeListHl(flyHl, L, row)  // the hover highlight
+//  Hide the highlight for row -1; only call its placement helper with a valid row.
 popIn(node, t, start, .2)   popInOut(node, t, start, end)    // menus open and close like the app's
 
 const S = buildSession(ui, { title, branch, chip, mode });
@@ -119,11 +126,55 @@ went out with.
 Pages are layers. A scene that goes from the home page to a session builds both and switches
 `visibility` in `pose` at the moment the app would. Popups not in use must be hidden.
 
+### Populated Automations gallery
+
+```js
+import { AUTOMATION_ICONS, buildAutomationGallery } from './automations.mjs';
+await loadAssets(AUTOMATION_ICONS);
+const gallery = buildAutomationGallery(ui, { automations, runs });
+gallery.pose(t, { runningIds: [], hoverId: null });
+```
+
+Each item has `id`, `name`, `description`, `trigger`, `source` (`local` or `cloud`),
+`project`, `environment`, `age`, and `duration`. Keep illustrative values in the
+project's data constants and tag them `DRAWN`. `runs` defaults to one completed
+run per automation. Passing a running ID adds a new live row above that history,
+rather than replacing an older run. `cards`, `rows`, and `activeRows` expose the
+nodes for measurement and framing. The builder uses the `.ag-*` classes in
+`film.css`. Check an installed-build screenshot before claiming an exact match.
+
+### Automation dialog and run details
+
+`buildAutomationDialog(win)` uses `.ad-*` styles. Load `DIALOG_ICONS` first.
+Its `pose(t, state)` accepts `visible`, `name`, `prompt`, `project`, `hour`,
+`model`, `cloud`, `cloudAt`, `focus` (`name` or `prompt`), `caret`, and `ready`.
+It returns the input, schedule controls, cloud switch, composer, model chip,
+repository control, and Create split button for measurement. Measure both local
+and cloud states before animating: cloud-only rows move the switch but not the footer.
+
+`buildAutomationMenu(parent, items, { width, search, description })` accepts strings
+or `{ label, icon, check, checkbox }` items. Call `position(x, y)` and `measure()`
+once before posing. `pose(t, start, end, pointer)` animates and highlights the menu;
+`rows[i].checkNode` lets multi-select choices change without building DOM in `pose`.
+For Daily hours, selecting another hour adds it. Remove the old selection and
+close the menu rather than treating it as a single-choice field.
+
+`buildAutomationRun(ui, { automation, run, prompt })` uses `.ar-*` styles and
+`RUN_ICONS`. Pass `automation.name` and `automation.trigger`; pass `run.age`,
+`duration`, `revision`, `dates`, `reply`, and `steps` (`{ icon, label, detail? }`).
+The returned `pose(t, opened)` reveals a completed read-only run.
+`buildAutomationNavBadge(ui, { succeeded, failures })` returns `pose(t, state,
+showTooltip)`, where state is `running`, `input`, `success`, or `failed`.
+The last state shows both counts. Use separate illustrative outcomes, not one
+successful run turning into a failure.
+
 ## Data to set per video
 
 - `kit.mjs`: `DEFAULT_MODEL`, the model the app is on (the chip, the menu's Model and Context
-  window rows, the check mark in the list). It is GPT-5.6 Sol. Change it only when the person
+  window rows, the check mark in the list). It is GPT-6 Sol. Change it only when the person
   names another model for the video.
+- `kit.mjs`: `MODELS` never holds an EAP model (any name with "EAP" in it) or GPT-5.6 Sol Fast.
+  Both are internal only, so leave them out even when a screenshot shows them.
 - `kit.mjs`: `MODELS` and the model constants (name, logo, context, prices), `LOCAL`, `USER` (the
   name in the sidebar; its picture is `assets/avatar.png`), and any product name. One constant
   per name, so a rename is a one line change.

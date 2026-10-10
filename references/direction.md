@@ -42,7 +42,9 @@ note on a real video.
 - Typing is uneven on purpose (`typing()`); a prompt takes 2 to 4 s however long it is.
 - Work that takes hours in life (a long run, a download) is shown as a few beats and a clock
   that jumps, not sped-up noise.
-- The last frame of the video holds for a second.
+- The last frame of the video holds for a second. When the voice is the end of the recording, end
+  the last part about 36 frames past it (`to: frame(n + 36)` in `film/edit.mjs`): compose pads the
+  sound with silence to the picture's length, and the preview plays that time without sound.
 
 ## Words on screen
 
@@ -71,6 +73,7 @@ note on a real video.
 | --- | --- |
 | "The words appearing as I speak look weird" / "you don't need to put every word I say" | Word by word text was used everywhere. Keep it for one or two short headlines (the title's name, the first few words of the end card). Make every other line a summary that fades in as one piece, and cut lines that only repeat the voice. See "Words on screen". |
 | "Too much zoom" / "these are all stills" | Fewer camera keys, lower top zoom, and add motion in the app itself: typing, rows arriving, a menu opening, a spinner. |
+| "Zoom in on what I am talking about, but not excessively" | Start closer to the narrated control, usually 1.3 to 1.55x, and use one restrained move. Keep shared camera endpoints across continuous scenes. Measure the control at the click, not just the camera's final position, so an edge button stays fully in frame. |
 | "The zooms are jerky" | Use `glide` for the move, make it longer, and remove a key in the middle of a move. Two short moves become one long one. |
 | "I can't read the text and watch what is happening" / "everything moves too fast" (a video with no voice) | Split reading from watching. Before each feature, a card with its name and one sentence (about 4 s). Then the film, with one short line under the page per beat in place of a sentence, a closer framing on the part that matters, and one action at a time with a second or more between them. Expect the video to be two to three times as long, and say so. `buildSteps` and `featureCard` in a project made this way. |
 | "The text jumps when it zooms" | The move is not going through `film()`, or a node sets its own `transform` with whole pixels. Every camera move must go through `film(stage, camera(t))`. |

@@ -415,7 +415,7 @@ export function layoutPicker({ chip: chipNode, menu: menuNode, fly, card, rows }
   place(fly, list.x, list.y);
   menuNode.style.transformOrigin = menu.y > chip.y ? `${px(chip.w / 2)} 0` : `${px(chip.w / 2)} 100%`;
   fly.style.transformOrigin = `0 ${px(modelTop + 14 - list.y)}`;
-  card.style.transformOrigin = `0 ${px(CARD.h / 2)}`;
+  if (card) card.style.transformOrigin = `0 ${px(CARD.h / 2)}`;
   return { chip, menu, modelTop, fly: list, rows, rowMid, cardX, cardTop };
 }
 

@@ -159,7 +159,8 @@ for (const piece of pieces) {
   at += take;
 }
 graph.push(`${labels.join('')}concat=n=${labels.length}:v=1:a=0[v]`);
-graph.push(...voice, `${joined},volume=${gain}dB[voice]`);
+// A last part that runs past the end of the recording (a card that holds after the voice) keeps a full-length track.
+graph.push(...voice, `${joined},volume=${gain}dB,apad=whole_dur=${(end / FPS).toFixed(4)}[voice]`);
 // The films' sounds go in after the voice is brought up, so their gains are
 // relative to the finished voice, and before the limiter, which holds the sum.
 cues.forEach((cue, k) => {

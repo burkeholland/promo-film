@@ -135,6 +135,113 @@ img.logo { position: absolute; display: block; }
 .split { position: absolute; top: 0; width: 1px; height: 100%; background: rgba(31, 35, 40, .15); }
 #ibeam { position: absolute; left: 0; top: 0; width: 9px; height: 18px; visibility: hidden; }
 
+/* Current-source automation authoring, with one stable dialog across the edit. */
+.ad-dialog { display: flex; flex-direction: column; overflow: hidden; font-size: 13px; line-height: 20px; }
+.ad-header { display: flex; align-items: center; gap: 10px; flex: none; height: 48px; padding: 0 20px; border-bottom: 1px solid #e3e8ec; }
+.ad-header strong { font-size: 14px; font-weight: 600; }
+.ad-header > .ad-icon { margin-left: auto; }
+.ad-icon { position: relative; display: inline-block; flex: none; }
+.ad-unsaved { border: 1px solid #d4a72c; border-radius: 12px; padding: 0 7px; font-size: 11px; line-height: 18px; color: #9a6700; }
+.ad-body { display: flex; flex: 1; min-height: 0; flex-direction: column; gap: 16px; padding: 20px; }
+.ad-control { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 6px; }
+.ad-body > .ad-control { flex: none; }
+.ad-label { flex: none; font-size: 13px; line-height: 20px; font-weight: 500; }
+.ad-name { position: relative; flex: none; width: 100%; height: 34px; }
+.ad-schedule { display: flex; flex: none; gap: 12px; }
+.ad-select { display: flex; justify-content: space-between; align-items: center; height: 32px; padding: 0 12px; border: 1px solid #d1d9e0; border-radius: 6px; }
+.ad-cloud { display: flex; flex: none; align-items: center; gap: 16px; }
+.ad-cloud > div:first-child { flex: 1; min-width: 0; }
+.ad-cloud p, .ad-tools p { margin: 2px 0 0; color: #59636e; font-size: 12px; line-height: 18px; }
+.ad-switch { position: relative; flex: none; width: 40px; height: 20px; border-radius: 10px; box-shadow: inset 0 0 0 1px #d1d9e0; }
+.ad-switch i { position: absolute; left: 2px; top: 2px; width: 18px; height: 16px; border-radius: 9px; background: #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .12); }
+.ad-extra { flex: none; }
+.ad-add-trigger { font-size: 12px; line-height: 20px; }
+.ad-tool-button { display: inline-flex; align-items: center; gap: 12px; margin-top: 6px; padding: 3px 10px; border: 1px solid #d1d9e0; border-radius: 6px; font-size: 12px; }
+.ad-prompt-group { display: flex; flex: 1; flex-direction: column; gap: 6px; min-height: 0; }
+.ad-composer { display: flex; flex: 1; min-height: 0; flex-direction: column; overflow: hidden; border: 1px solid #d1d9e0; border-radius: 12px; }
+.ad-composer.focus { border-color: #768291; box-shadow: 0 1px 4px rgba(31, 35, 40, .08); }
+.ad-text-viewport { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+.ad-text-viewport::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 8px; background: linear-gradient(transparent, #fff); }
+.ad-model-bar { display: flex; flex: none; gap: 2px; height: 36px; padding: 4px 8px; }
+.ad-repo-bar { display: flex; flex: none; align-items: center; gap: 10px; height: 32px; padding: 0 12px; background: #f6f8fa; }
+.ad-repo-choice { display: flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 12px; color: #59636e; }
+.ad-footer { display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex: none; min-height: 72px; padding: 16px 20px; border-top: 1px solid #e3e8ec; }
+.ad-footer p { flex: 1; margin: 0; color: #59636e; font-size: 12px; line-height: 18px; }
+.ad-button { flex: none; height: 32px; padding: 5px 12px; border: 1px solid #d1d9e0; border-radius: 6px; background: #f6f8fa; font-size: 13px; font-weight: 600; }
+.ad-create { display: flex; flex: none; height: 32px; border-radius: 6px; background: #1f883d; color: #fff; font-weight: 600; overflow: hidden; }
+.ad-create-label { padding: 6px 12px; }
+.ad-create-split { display: flex; align-items: center; justify-content: center; width: 30px; border-left: 1px solid rgba(31, 35, 40, .18); }
+.ad-create.disabled { background: #95d8a6; color: #eef9f1; }
+.ad-menu { padding: 4px; font-size: 13px; line-height: 20px; }
+.ad-menu-row { display: flex; align-items: center; gap: 8px; height: 28px; padding: 0 10px; border-radius: 8px; }
+.ad-menu-row > span:not(.ad-icon) { flex: 1; }
+.ad-menu-row.over { background: #f2f3f4; }
+.ad-menu-search { margin: -4px -4px 4px; padding: 8px 12px; color: #8c959f; border-bottom: 1px solid #e3e8ec; }
+.ad-menu-description { margin: 0; padding: 0 10px 6px; color: #59636e; font-size: 12px; line-height: 18px; }
+
+/* Automation run details and sidebar status treatments. */
+.ar-header { display: flex; align-items: center; gap: 10px; position: absolute; padding: 0 12px; border-bottom: 1px solid #e3e8ec; background: #fff; font-size: 13px; line-height: 20px; }
+.ar-header strong { font-weight: 500; white-space: nowrap; }
+.ar-back, .ar-separator { color: #59636e; }
+.ar-head-status { flex: 1; text-align: right; white-space: nowrap; color: #59636e; font-size: 12px; }
+.ar-actions { display: flex; flex: none; height: 28px; border: 1px solid #d1d9e0; border-radius: 6px; background: #f6f8fa; }
+.ar-edit { display: flex; align-items: center; gap: 6px; padding: 0 8px; font-size: 12px; }
+.ar-more { display: flex; align-items: center; justify-content: center; width: 28px; border-left: 1px solid #d1d9e0; }
+.ar-rail { position: absolute; display: flex; flex-direction: column; justify-content: center; gap: 12px; padding: 16px 8px 16px 16px; }
+.ar-tick { display: block; width: 9px; height: 2px; background: #1a7f37; border-radius: 2px; opacity: .4; }
+.ar-tick.selected { opacity: 1; }
+.ar-revision { position: absolute; color: #59636e; font-size: 12px; line-height: 20px; }
+.ar-thread { position: absolute; font-size: 14px; line-height: 21px; }
+.ar-user { display: flex; justify-content: flex-end; margin-bottom: 34px; }
+.ar-bubble { max-width: 80%; padding: 10px 12px; border-radius: 13px; background: #f6f8fa; white-space: pre-line; }
+.ar-tool-list { display: flex; flex-direction: column; }
+.ar-tool { display: flex; align-items: center; gap: 8px; height: 28px; font-size: 13px; line-height: 20px; color: #59636e; }
+.ar-detail { color: #818b98; margin-left: 6px; }
+.ar-reply { margin-top: 18px; }
+.ar-reply p { margin: 0 0 10px; }
+.ar-finished { display: flex; align-items: center; gap: 8px; margin-top: 16px; color: #59636e; font-size: 12px; }
+.ar-nav-badges { position: absolute; display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+.ar-working { position: relative; width: 20px; height: 20px; }
+.ar-nav-badge { display: inline-flex; align-items: center; justify-content: center; gap: 2px; flex: none; height: 20px; min-width: 20px; padding: 0 3px; border-radius: 6px; font-size: 10px; line-height: 16px; }
+.ar-nav-badge.attention { background: #fff8c5; color: #9a6700; }
+.ar-nav-badge.success { background: #dafbe1; color: #1a7f37; }
+.ar-nav-badge.danger { background: #ffebe9; color: #d1242f; }
+.ar-tooltip { position: absolute; padding: 6px 9px; border-radius: 6px; white-space: nowrap; background: #1f2328; color: #fff; font-size: 12px; line-height: 18px; box-shadow: 0 3px 8px rgba(0, 0, 0, .14); }
+
+/* Automations gallery: current source layout, separate from the empty-state example. */
+.ag-header { position: absolute; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 12px; border-bottom: 1px solid #e3e8ec; background: #fff; }
+.ag-tabs { display: flex; align-items: center; align-self: stretch; flex: 1; gap: 4px; min-width: 0; }
+.ag-tab { position: relative; display: flex; align-items: center; padding: 0 12px; font-size: 13px; line-height: 20px; color: #59636e; }
+.ag-tab.selected { color: #1f2328; font-weight: 600; }
+.ag-tab.selected::after { content: ''; position: absolute; bottom: 0; left: 10px; right: 10px; height: 2px; border-radius: 1px; background: #fd8c73; }
+.ag-search { position: relative; display: flex; align-items: center; gap: 6px; flex: 0 0 224px; height: 28px; padding: 0 8px; border: 1px solid #d1d9e0; border-radius: 6px; font-size: 12px; color: #59636e; }
+.ag-search > span:nth-child(2) { flex: 1; }
+.ag-icon { position: relative; display: inline-block; flex: none; width: 12px; height: 12px; vertical-align: -2px; }
+.ag-button { flex: none; padding: 0 12px; height: 28px; border-radius: 6px; font-size: 12px; line-height: 28px; font-weight: 600; white-space: nowrap; }
+.ag-button.primary { background: #1f883d; color: #fff; box-shadow: inset 0 0 0 1px rgba(31, 35, 40, .15); }
+.ag-button.secondary { background: #f6f8fa; box-shadow: inset 0 0 0 1px #d1d9e0; }
+.ag-body { position: absolute; font-size: 13px; line-height: 20px; }
+.ag-body h2 { margin: 0; font-size: 13px; line-height: 20px; font-weight: 600; }
+.ag-about { margin: 2px 0 0; font-size: 12px; line-height: 18px; color: #59636e; }
+.ag-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+.ag-card { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 12px; overflow: hidden; background: #fff; border-radius: 12px; box-shadow: inset 0 0 0 1px #d1d9e0; }
+.ag-card.over { background: #f6f8fa; }
+.ag-card-top { display: flex; align-items: flex-start; gap: 8px; }
+.ag-card-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 13px; line-height: 20px; font-weight: 500; white-space: nowrap; }
+.ag-badge { display: flex; align-items: center; gap: 4px; flex: none; height: 20px; padding: 0 6px; border-radius: 6px; font-size: 12px; line-height: 20px; background: #ddf4ff; color: #0969da; }
+.ag-description { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; flex: 1; min-height: 40px; margin: 0; overflow: hidden; font-size: 13px; line-height: 20px; color: #59636e; }
+.ag-card-footer { display: flex; align-items: center; gap: 8px; min-height: 40px; margin: auto -12px -12px; padding: 6px 12px; background: #f6f8fa; font-size: 12px; line-height: 18px; color: #59636e; }
+.ag-footer-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ag-status { display: flex; align-items: center; gap: 4px; flex: none; }
+.ag-action { display: flex; align-items: center; justify-content: center; flex: none; width: 22px; height: 24px; }
+.ag-shimmer { color: transparent; background: linear-gradient(100deg, #59636e 32%, #c5ccd5 48%, #59636e 64%); background-size: 200% 100%; background-clip: text; }
+.ag-history { margin-top: 48px; }
+.ag-history h3 { margin: 12px 0 8px; font-size: 12px; line-height: 18px; font-weight: 500; color: #59636e; }
+.ag-run { display: flex; flex-direction: column; gap: 2px; min-height: 60px; padding: 10px 12px; border: 1px solid #d1d9e0; border-bottom-width: 0; }
+.ag-run-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ag-run-name { font-size: 13px; line-height: 20px; font-weight: 500; }
+.ag-run-location, .ag-run-status { display: flex; align-items: center; gap: 5px; font-size: 12px; line-height: 18px; color: #59636e; }
+
 /* Settings: the dialog's nav, the General page and the Experimental list
    (screenshots 07 and 10). A switch is Primer's small one: its track is a
    wide gradient that slides from grey to blue, and its thumb moves 12px. */
@@ -247,3 +354,22 @@ body.board #wallpaper { display: none; }
 
 /* A plain notification's body: at most three lines, as Windows shows it. */
 .toast .body.clamp { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+
+/* DRAWN: Microsoft Edge on Windows 11, light. The plain layout: one tab, the toolbar, the address bar. */
+.edge { position: absolute; overflow: hidden; border-radius: 8px; background: #f7f7f7; font-family: "Segoe UI", sans-serif;
+  box-shadow: 0 0 0 .5px rgba(0, 0, 0, .18), 0 4px 10px rgba(0, 0, 0, .14), 0 14px 36px rgba(0, 0, 0, .24); }
+.edge .tabs { position: absolute; background: #ebebeb; }
+.edge .tab { position: absolute; border-radius: 8px 8px 0 0; background: #f7f7f7; }
+.edge .tab .t { position: absolute; left: 34px; top: 8px; width: 168px; overflow: hidden; text-overflow: ellipsis; font-size: 12px; line-height: 18px; color: #1a1a1a; white-space: nowrap; }
+.edge .tbar { position: absolute; background: #f7f7f7; border-bottom: 1px solid #e0e0e0; }
+.edge .addr { position: absolute; border-radius: 15px; background: #fff; box-shadow: inset 0 0 0 1px #e3e3e3; }
+.edge .addr.focus { box-shadow: inset 0 0 0 2px #0f6cbd; }
+.edge .addr .u { position: absolute; left: 34px; top: 5px; font-size: 13px; line-height: 20px; color: #1a1a1a; white-space: nowrap; }
+.edge .addr .u .path { color: #707070; }
+.edge .addr .u.on .path { color: #1a1a1a; }
+.edge .addr .u.sel { background: #0078d4; }
+.edge .addr .u.sel .host, .edge .addr .u.sel .path { color: #fff; }
+.edge .view { position: absolute; overflow: hidden; background: #fff; }
+/* The minimize button lit under the pointer (minimize.mjs) and Edge's close button gone red (edge.mjs). */
+.cap-hot { position: absolute; z-index: 6; background: rgba(0, 0, 0, .06); }
+.edge .cbtn { position: absolute; background: #c42b1c; visibility: hidden; }

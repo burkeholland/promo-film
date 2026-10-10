@@ -94,6 +94,69 @@ def onset(db, at, limit):
     return None
 
 
+def sound_runs(db, floor=-42.0, gap=0.2, minimum=0.4):
+    """Stretches of at least `minimum` s where something is above `floor` dBFS,
+    with quiet gaps shorter than `gap` s closed up."""
+    on = db > floor
+    edges = np.flatnonzero(np.diff(np.concatenate(([0], on.astype(np.int8), [0]))))
+    runs = [[a * HOP, b * HOP] for a, b in zip(edges[::2], edges[1::2])]
+    merged = []
+    for run in runs:
+        if merged and run[0] - merged[-1][1] < gap:
+            merged[-1][1] = run[1]
+        else:
+            merged.append(run)
+    return [(a, b) for a, b in merged if b - a >= minimum]
+
+
+def listen_again(clip, model_name, prompt):
+    """Listens to one short clip with Whisper's skip rules relaxed. Its usual
+    rules drop a sentence that follows a long quiet stretch as "no speech"."""
+    from faster_whisper import WhisperModel
+
+    def run(device, compute_type):
+        model = WhisperModel(model_name, device=device, compute_type=compute_type)
+        segments, _ = model.transcribe(str(clip), language='en', beam_size=5, word_timestamps=True,
+                                       initial_prompt=prompt or None, condition_on_previous_text=False,
+                                       no_speech_threshold=0.99, log_prob_threshold=-3.0, compression_ratio_threshold=10.0)
+        return list(segments)
+
+    try:
+        return run('cuda', 'float16')
+    except Exception:
+        return run('cpu', 'int8')
+
+
+def recover(audio, heard, model_name, prompt):
+    """Adds the sentences Whisper skipped: sound with no word in it is heard again on its own."""
+    words = [w for s in heard['segments'] for w in s['words']]
+    found = []
+    for a, b in sound_runs(loudness(audio)):
+        if any(w['end'] > a - 0.1 and w['start'] < b + 0.1 for w in words):
+            continue
+        lo, hi = max(0.0, a - 0.4), b + 0.4
+        clip = ROOT / 'build' / 'gap.wav'
+        clip.parent.mkdir(exist_ok=True)
+        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', f'{lo:.3f}', '-t', f'{hi - lo:.3f}', '-i', str(audio),
+                        '-ar', str(RATE), '-ac', '1', str(clip)], check=True)
+        # Whisper starts the first word at the start of the clip, so a breath or
+        # click before the voice would be taken for the word. Start it with the sound.
+        got = []
+        for s in listen_again(clip, model_name, prompt):
+            kept = [{'word': w.word, 'start': max(lo + w.start, a), 'end': max(lo + w.end, a + 0.05)}
+                    for w in (s.words or []) if w.probability >= 0.35]
+            if kept:
+                got.append({'start': kept[0]['start'], 'end': kept[-1]['end'], 'text': s.text.strip(), 'words': kept})
+        print(f'Sound with no words at {a:.2f} - {b:.2f} s: ' + (' '.join(s['text'] for s in got) or '(heard nothing)'))
+        found += got
+    heard['segments'] = sorted(heard['segments'] + found, key=lambda s: s['start'])
+    heard['gapsChecked'] = True
+    clip = ROOT / 'build' / 'gap.wav'
+    if clip.exists():
+        clip.unlink()
+    return len(found)
+
+
 def fix(words, fixes):
     for heard, said in fixes:
         old, new = heard.split(), said.split()
@@ -140,6 +203,9 @@ def main():
         heard = {'key': key, **listen(audio, args.model, prompt)}
         cache.write_text(json.dumps(heard, indent=1), encoding='utf-8')
         print(f'Transcribed {heard["duration"]:.1f} s with {args.model} in {time.time() - started:.0f} s')
+    if not heard.get('gapsChecked'):
+        recover(audio, heard, args.model, prompt)
+        cache.write_text(json.dumps(heard, indent=1), encoding='utf-8')
 
     # Whisper splits some words in two ("cutting -edge", "1 .1", "100 %").
     words = []
