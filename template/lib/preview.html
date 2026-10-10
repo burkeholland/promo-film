@@ -2,430 +2,1745 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Preview</title>
-<link rel="icon" href="data:,">
 <style>
-  :root { color-scheme: dark; --line: #2b3038; --dim: #8b949e; --ink: #e6edf3; --blue: #4493f8; }
-  * { box-sizing: border-box; }
-  html, body { height: 100%; margin: 0; }
-  body { display: grid; grid-template-rows: auto 1fr auto; background: #0d1117; color: var(--ink); font: 13px/1.4 'Segoe UI', system-ui, sans-serif; overflow: hidden; }
-  header { display: flex; gap: 16px; align-items: center; padding: 8px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-  header b { font-weight: 600; }
-  #clock { font: 600 15px/1 ui-monospace, Consolas, monospace; }
-  #where { color: var(--dim); font-family: ui-monospace, Consolas, monospace; }
-  #said { flex: 1; overflow: hidden; text-overflow: ellipsis; color: var(--dim); text-align: right; }
-  #said mark { background: none; color: #fff; font-weight: 600; }
-  select, button, input { font: inherit; color: inherit; background: #161b22; border: 1px solid var(--line); border-radius: 6px; padding: 4px 9px; }
-  button { cursor: pointer; }
-  button:hover { background: #21262d; }
-  main { display: grid; grid-template-columns: 1fr 300px; min-height: 0; }
-  #room { position: relative; min-width: 0; min-height: 0; display: grid; place-items: center; padding: 12px; }
-  #stage { position: relative; overflow: hidden; background: #000; box-shadow: 0 0 0 1px var(--line); }
-  #stage video { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transform-origin: 0 0; }
-  #stage iframe { position: absolute; left: 0; top: 0; width: 1536px; height: 864px; border: 0; transform-origin: 0 0; pointer-events: none; visibility: hidden; background: #fff; }
-  #message { position: absolute; inset: 0; display: none; place-items: center; padding: 24px; background: rgba(13, 17, 23, .92); white-space: pre-wrap; font: 12px/1.5 ui-monospace, Consolas, monospace; overflow: auto; }
-  #message.error { color: #ff7b72; place-items: start; }
-  aside { display: grid; grid-template-rows: auto 1fr auto; border-left: 1px solid var(--line); min-height: 0; }
-  aside h2 { margin: 0; padding: 10px 12px 6px; font-size: 12px; font-weight: 600; color: var(--dim); text-transform: uppercase; letter-spacing: .04em; }
-  #notes { overflow: auto; margin: 0; padding: 0 6px; list-style: none; }
-  #notes li { padding: 6px; border-radius: 6px; cursor: pointer; }
-  #notes li:hover { background: #161b22; }
-  #notes li.done { opacity: .45; text-decoration: line-through; }
-  #notes time { display: block; color: var(--blue); font: 12px/1.3 ui-monospace, Consolas, monospace; }
-  #notes .empty { color: var(--dim); cursor: default; }
-  #write { display: grid; gap: 6px; padding: 10px 12px; border-top: 1px solid var(--line); }
-  #write small { color: var(--dim); }
-  #note { width: 100%; }
-  footer { padding: 8px 14px 12px; border-top: 1px solid var(--line); }
-  #controls { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
-  #controls .keys { margin-left: auto; color: var(--dim); }
-  #bar { position: relative; display: flex; height: 34px; border-radius: 6px; overflow: hidden; cursor: pointer; user-select: none; background: #161b22; }
-  #bar .part { overflow: hidden; padding: 0 6px; font: 11px/34px 'Segoe UI', sans-serif; white-space: nowrap; color: #c9d1d9; border-right: 1px solid #0d1117; }
-  #bar .film { background: #1f3a5f; }
-  #bar .camera { background: #30363d; }
-  #head { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #fff; pointer-events: none; }
-  #bar .pin { position: absolute; top: 0; width: 0; height: 0; margin-left: -4px; border: 4px solid transparent; border-top: 7px solid #f0b72f; pointer-events: none; }
-  button:disabled { opacity: .5; cursor: default; }
-  a.button { color: inherit; text-decoration: none; background: #1f6feb; border: 1px solid #1f6feb; border-radius: 6px; padding: 4px 9px; white-space: nowrap; }
-  a.button:hover { background: #388bfd; }
-  #job { max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dim); font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
-  #job.failed { color: #ff7b72; cursor: pointer; }
-  #job.running { cursor: pointer; }
+:root {
+  --bg: #0d1117; --panel: #151b23; --raised: #1c232d; --hover: #232b36; --line: #2a313c;
+  --text: #e6edf3; --dim: #9198a1; --faint: #6e7681;
+  --accent: #4493f8; --danger: #f85149; --ok: #3fb950;
+  --sans: 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --mono: 'Cascadia Mono', 'Cascadia Code', Consolas, ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; margin: 0; }
+[hidden] { display: none !important; }
+html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font: 13px/1.4 var(--sans); -webkit-font-smoothing: antialiased; }
+body { min-width: 320px; }
+button, input { font: inherit; color: inherit; }
+button { background: none; border: 0; padding: 0; cursor: pointer; }
+button:disabled { cursor: default; opacity: .4; }
+kbd { font: 11px var(--mono); padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; background: var(--raised); color: var(--text); }
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.i { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.i.solid { fill: currentColor; stroke-width: 1; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin .9s linear infinite; }
+
+.app { display: grid; grid-template-rows: 44px minmax(0, 1fr) auto; height: 100vh; height: 100dvh; min-width: 320px; }
+
+/* top bar */
+.top { display: flex; align-items: center; gap: 8px; padding: 0 12px; border-bottom: 1px solid var(--line); min-width: 0; }
+.name { font-size: 14px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.grow { flex: 1; min-width: 0; }
+.anchor { position: relative; display: flex; flex: none; }
+.btn { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 6px; color: var(--dim); flex: none; }
+.btn:hover:not(:disabled), .btn[aria-expanded=true], .btn[aria-pressed=true] { background: var(--raised); color: var(--text); }
+.btn.on { color: var(--accent); }
+.chip { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border-radius: 6px; color: var(--dim); white-space: nowrap; flex: none; }
+.chip:hover:not(:disabled), .chip[aria-expanded=true], .chip[aria-pressed=true] { background: var(--raised); color: var(--text); }
+.chip .i { color: var(--dim); }
+.count { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--accent); color: #fff; font-size: 11px; font-weight: 600; line-height: 18px; text-align: center; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.dot.ok { background: var(--ok); }
+.dot.bad { background: var(--danger); }
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 12px; background: var(--raised); color: var(--dim); font-size: 12px; white-space: nowrap; flex: none; }
+.pill.bad { color: var(--danger); }
+.pill .i { width: 13px; height: 13px; }
+
+/* menus */
+.menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 30; min-width: 190px; padding: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 12px 32px rgba(0, 0, 0, .5); }
+.menu { max-height: min(70vh, 460px); overflow: auto; }
+.menu.right { left: auto; right: 0; }
+.menu.up { top: auto; bottom: calc(100% + 6px); }
+.mi { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 8px; border-radius: 6px; text-align: left; color: var(--text); white-space: nowrap; }
+.mi:hover, .mi:focus-visible { background: var(--hover); }
+.mi .i { color: var(--dim); }
+.mi .tick { margin-left: auto; color: var(--accent); visibility: hidden; }
+.mi[aria-checked=true] .tick { visibility: visible; }
+.mi .hint { margin-left: auto; color: var(--faint); font-size: 12px; }
+.menu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 0; }
+.sheet { width: 300px; padding: 12px; }
+.sheet h3 { font-size: 12px; font-weight: 600; color: var(--dim); margin-bottom: 8px; }
+.keys { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; align-items: center; }
+.keys dt { display: flex; gap: 4px; justify-content: flex-end; }
+.keys dd { color: var(--dim); }
+
+/* main */
+.main { position: relative; display: flex; min-height: 0; min-width: 0; }
+.room { flex: 1; min-width: 0; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); padding: 12px 12px 0; }
+@media (min-width: 760px) { .room { padding: 16px 16px 0; } }
+.stagebox { position: relative; min-height: 0; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.stage { position: relative; flex: none; background: #000; border-radius: 6px; overflow: hidden; box-shadow: 0 0 0 1px var(--line); --scale: 1; width: 320px; height: 180px; user-select: none; -webkit-user-select: none; }
+.caption { flex: none; align-self: stretch; height: 36px; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 0 .35em; align-items: center; font-size: 14px; white-space: nowrap; overflow: hidden; }
+.caption .before, .caption .after { overflow: hidden; display: flex; min-width: 0; }
+.caption .before { justify-content: flex-end; color: var(--dim); -webkit-mask-image: linear-gradient(90deg, transparent, #000 40%); mask-image: linear-gradient(90deg, transparent, #000 40%); }
+.caption .after { color: var(--faint); -webkit-mask-image: linear-gradient(90deg, #000 60%, transparent); mask-image: linear-gradient(90deg, #000 60%, transparent); }
+.caption .now { color: var(--text); font-weight: 600; }
+/* stage contents */
+/* A film is a frame the size of the desktop (1536 x 864), scaled to fit, inside a box the size of the stage.
+   will-change makes every box its own layer, drawn once at the size it is shown, so a cut only changes which
+   layer is on top. Without it the first cut into a film with the desktop picture waited about 140 ms for it
+   to be drawn. The hint is on the box and not on the scaled frame: the browser keeps a hinted layer's picture
+   at a size it picks, and on the frame that was not the size shown, so the text came out soft. */
+.film { position: absolute; inset: 0; overflow: hidden; will-change: transform; visibility: hidden; pointer-events: none; z-index: 0; }
+.film iframe { position: absolute; left: 0; top: 0; width: 1536px; height: 864px; border: 0; background: #fff; transform-origin: 0 0; transform: scale(var(--scale)); }
+.film.under { visibility: visible; z-index: 1; }
+.film.show { visibility: visible; z-index: 2; }
+#recording { position: absolute; left: 0; top: 0; width: 100%; height: auto; opacity: 0; transform-origin: 0 0; z-index: 4; pointer-events: none; }
+.cover { position: absolute; inset: 0; background: #000; z-index: 3; }
+.over { position: absolute; inset: 0; z-index: 6; display: grid; place-content: center; justify-items: center; gap: 10px; padding: 20px; text-align: center; }
+.message { background: rgba(13, 17, 23, .8); }
+.message.error { background: #0d1117; place-content: start center; overflow: auto; text-align: left; justify-items: stretch; }
+.message .title { font-size: 14px; font-weight: 600; }
+.message .body { color: var(--dim); max-width: 460px; white-space: pre-wrap; }
+.message.error .title { color: var(--danger); }
+.message.error .body { max-width: none; font: 12px/1.5 var(--mono); color: var(--text); }
+.message .i.big { width: 22px; height: 22px; color: var(--dim); }
+.flash { position: absolute; left: 50%; top: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%; background: rgba(0, 0, 0, .6); display: grid; place-items: center; opacity: 0; pointer-events: none; z-index: 7; }
+.flash .i { width: 26px; height: 26px; color: #fff; }
+@keyframes flash { 0% { opacity: .95; transform: scale(.8); } 100% { opacity: 0; transform: scale(1.25); } }
+.flash.go { animation: flash .5s ease-out; }
+.ended { background: rgba(13, 17, 23, .62); z-index: 8; grid-auto-flow: row; }
+.cta { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 0 16px; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 600; }
+.cta:hover { background: #5aa0fa; }
+.cta.quiet { background: var(--raised); color: var(--text); font-weight: 400; border: 1px solid var(--line); }
+.cta.quiet:hover { background: var(--hover); }
+
+/* dock */
+.dock { border-top: 1px solid var(--line); background: var(--panel); min-width: 0; }
+.transport { display: flex; align-items: center; gap: 4px; height: 52px; padding: 0 12px; }
+.transport .side { display: flex; align-items: center; gap: 2px; margin-left: auto; min-width: 0; }
+.play { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: #fff; display: inline-grid; place-items: center; flex: none; margin: 0 4px; }
+.play:hover:not(:disabled) { background: #5aa0fa; }
+.play .i { width: 16px; height: 16px; }
+.clock { font: 12px var(--mono); font-variant-numeric: tabular-nums; color: var(--dim); white-space: pre; margin: 0 8px; min-width: 17ch; }
+.clock b { font-weight: 400; color: var(--text); }
+.frame { font: 12px var(--mono); font-variant-numeric: tabular-nums; color: var(--faint); min-width: 7ch; }
+.where { font: 12px var(--mono); color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 8px; min-width: 0; }
+.rate { font: 12px var(--mono); width: auto; min-width: 40px; padding: 0 6px; }
+
+/* timeline */
+.timeline { padding: 12px; height: 52px; }
+.bar { position: relative; height: 28px; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; }
+.track { position: absolute; inset: 0; display: flex; }
+.seg { position: relative; min-width: 0; transition: opacity .15s; }
+.seg .body { position: absolute; inset: 0 2px 0 0; border-radius: 4px; overflow: hidden; background: #1c2735; }
+.seg:last-child .body { right: 0; }
+.seg.camera .body { background: #2a2622; }
+.seg .fill { position: absolute; inset: 0; background: rgba(68, 147, 248, .3); transform: scaleX(0); transform-origin: 0 0; }
+.seg .tag { position: absolute; inset: 0; padding: 0 8px; line-height: 28px; font-size: 11px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; gap: 4px; }
+.seg .tag.clipped span { visibility: hidden; }
+.seg.here .tag { color: var(--text); }
+.seg.here .body { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22); }
+.seg .again { display: none; width: 12px; height: 12px; color: var(--accent); }
+.looping .seg { opacity: .7; }
+.looping .seg.here { opacity: 1; }
+.looping .seg.here .body { box-shadow: inset 0 0 0 1.5px var(--accent); }
+.looping .seg.here .again { display: block; }
+.head { position: absolute; left: 0; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: #fff; border-radius: 1px; box-shadow: 0 0 0 1px rgba(0, 0, 0, .35); pointer-events: none; z-index: 3; will-change: transform; }
+.ghost { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(255, 255, 255, .35); pointer-events: none; z-index: 2; }
+.tip { position: absolute; bottom: calc(100% + 10px); padding: 3px 8px; background: var(--raised); border: 1px solid var(--line); border-radius: 6px; font: 11px var(--mono); white-space: nowrap; pointer-events: none; z-index: 5; }
+.pin { position: absolute; top: -3px; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; background: var(--accent); z-index: 4; }
+.pin::before { content: ''; position: absolute; inset: -7px; }
+.pin.done { background: var(--faint); }
+
+/* notes drawer */
+.drawer { display: flex; flex-direction: column; min-height: 0; width: min(340px, 100%); background: var(--panel); border-left: 1px solid var(--line); position: absolute; top: 0; right: 0; bottom: 0; z-index: 20; box-shadow: -12px 0 32px rgba(0, 0, 0, .35); }
+@media (min-width: 800px) { .drawer { position: relative; width: 320px; flex: none; box-shadow: none; } }
+/* A tall, narrow window has empty space under the picture, so the drawer sits there and the frame stays in view. */
+@media (max-width: 799px) and (orientation: portrait) and (min-height: 560px) {
+  .main { flex-direction: column; }
+  .drawer { position: relative; width: auto; height: min(320px, 40vh); flex: none; border-left: 0; border-top: 1px solid var(--line); box-shadow: none; }
+}
+@media (max-width: 439px) { .drawer { width: 100%; } }
+.drawer header { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 16px; border-bottom: 1px solid var(--line); }
+.drawer header h2 { font-size: 13px; font-weight: 600; }
+.drawer header span { color: var(--faint); }
+.notes { list-style: none; padding: 8px; overflow: auto; flex: 1; min-height: 0; }
+.notes .empty { padding: 24px 12px; color: var(--faint); text-align: center; }
+.note { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; width: 100%; padding: 8px; border-radius: 6px; text-align: left; align-items: baseline; }
+.note:hover { background: var(--raised); }
+.note .at { font: 12px var(--mono); color: var(--accent); }
+.note .text { color: var(--text); overflow-wrap: anywhere; }
+.note .where2 { grid-column: 2; font-size: 12px; color: var(--faint); }
+.note.done .text { color: var(--faint); text-decoration: line-through; }
+.note.done .at { color: var(--faint); }
+.note.fresh { animation: fresh 1.4s ease-out; }
+@keyframes fresh { from { background: rgba(68, 147, 248, .24); } }
+.composer { padding: 12px; border-top: 1px solid var(--line); display: grid; gap: 6px; }
+.composer .meta { display: flex; justify-content: space-between; gap: 8px; font: 12px var(--mono); color: var(--faint); }
+.composer input { width: 100%; height: 34px; padding: 0 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; }
+.composer .problem { font-size: 12px; color: var(--danger); overflow-wrap: anywhere; }
+.composer input::placeholder { color: var(--faint); }
+.composer input:focus { border-color: var(--accent); outline: none; }
+
+/* export */
+.job { display: grid; gap: 8px; margin-top: 12px; }
+.job pre { max-height: 140px; overflow: auto; padding: 8px; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; font: 11px/1.5 var(--mono); color: var(--dim); white-space: pre-wrap; }
+.row { display: flex; gap: 8px; }
+.row .cta { flex: 1; height: 32px; padding: 0 10px; font-weight: 400; }
+.row .cta.go { font-weight: 600; }
+.status { display: flex; align-items: center; gap: 8px; color: var(--dim); }
+.status.bad { color: var(--danger); }
+.dl { display: flex; align-items: center; gap: 8px; padding: 6px 8px; margin: 0 -8px; border-radius: 6px; color: var(--text); text-decoration: none; }
+.dl:hover { background: var(--hover); }
+.dl small { margin-left: auto; color: var(--faint); font-size: 12px; white-space: nowrap; }
+
+/* toasts */
+.toasts { position: fixed; left: 50%; bottom: 120px; transform: translateX(-50%); display: grid; gap: 8px; z-index: 60; pointer-events: none; width: max-content; max-width: calc(100vw - 24px); }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+.toast { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--raised); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px rgba(0, 0, 0, .45); animation: rise .18s ease-out; }
+.toast.error { border-color: rgba(248, 81, 73, .55); }
+.toast.error .i { color: var(--danger); }
+.toast.ok .i { color: var(--ok); }
+
+/* narrow */
+@media (max-width: 639px) { .where { display: none; } }
+@media (max-width: 759px) { .frame { display: none; } }
+@media (max-width: 599px) { .chip .label, .prev, .next, .helpwrap { display: none; } .chip { padding: 0 8px; } .name { font-size: 13px; } }
+@media (max-width: 439px) { .fswrap { display: none; } .transport, .top { padding: 0 8px; } .clock { margin: 0 4px; } }
+@media (prefers-reduced-motion: reduce) { .flash.go, .toast { animation: none; } }
 </style>
 </head>
 <body>
-<header>
-  <b id="name">Preview</b>
-  <select id="scene" title="Watch the whole edit or one scene"></select>
-  <span id="clock">0:00.00</span>
-  <span id="where"></span>
-  <span id="said"></span>
-</header>
-<main>
-  <div id="room"><div id="stage"><video id="recording" playsinline preload="auto"></video><div id="message"></div></div></div>
-  <aside>
-    <h2>Notes</h2>
-    <ul id="notes"></ul>
-    <div id="write">
-      <input id="note" placeholder="Note at this frame (N)" autocomplete="off">
-      <small>Saved to review/notes.md with the time and scene.</small>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-play" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></symbol>
+  <symbol id="i-replay" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol>
+  <symbol id="i-prev" viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" x2="5" y1="19" y2="5"/></symbol>
+  <symbol id="i-next" viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19"/></symbol>
+  <symbol id="i-repeat" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></symbol>
+  <symbol id="i-volume" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></symbol>
+  <symbol id="i-muted" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/></symbol>
+  <symbol id="i-expand" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></symbol>
+  <symbol id="i-shrink" viewBox="0 0 24 24"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></symbol>
+  <symbol id="i-note" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-keys" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-busy" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></symbol>
+  <symbol id="i-film" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 3v18"/><path d="M3 7.5h4"/><path d="M3 12h18"/><path d="M3 16.5h4"/><path d="M17 3v18"/><path d="M17 7.5h4"/><path d="M17 16.5h4"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></symbol>
+</svg>
+
+<div class="app">
+  <header class="top">
+    <h1 class="name" id="name">Preview</h1>
+    <div class="anchor">
+      <button class="chip" id="sceneBtn" aria-haspopup="menu" aria-expanded="false" title="Watch one scene on its own"><svg class="i"><use href="#i-film"/></svg><span class="label" id="sceneLabel">Whole edit</span><svg class="i"><use href="#i-chev"/></svg></button>
+      <div class="menu" id="sceneMenu" role="menu" hidden></div>
     </div>
-  </aside>
-</main>
-<footer>
-  <div id="controls">
-    <button id="play">Play</button>
-    <select id="rate" title="Speed"><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="1.5">1.5x</option><option value="2">2x</option></select>
-    <label><input type="checkbox" id="loop"> Loop this part (L)</label>
-    <span class="keys">Space play · ← → frame · Shift ← → second · [ ] part · N note</span>
-    <span id="job"></span>
-    <button id="draft" title="A quick review cut at 960 x 540 (node deliver.mjs --draft)">Quick draft</button>
-    <button id="export" title="Render what changed at full quality, compose, captions and the made-up list (node deliver.mjs). Takes minutes.">Export video</button>
-    <span id="downloads"></span>
-  </div>
-  <div id="bar"><div id="head"></div></div>
-</footer>
+    <span class="grow"></span>
+    <span class="pill" id="pill" hidden></span>
+    <button class="chip" id="notesBtn" aria-pressed="false" title="Notes (N)"><svg class="i"><use href="#i-note"/></svg><span class="label">Notes</span><span class="count" id="notesCount" hidden>0</span></button>
+    <div class="anchor">
+      <button class="chip" id="exportBtn" aria-haspopup="dialog" aria-expanded="false" title="Make a video file"><svg class="i" id="exportIcon"><use href="#i-down"/></svg><span class="label" id="exportLabel">Export</span><span class="dot" id="exportDot" hidden></span></button>
+      <div class="menu right sheet" id="exportMenu" role="dialog" aria-label="Export" hidden>
+        <div class="row"><button class="cta quiet" id="draftBtn">Quick draft</button><button class="cta go" id="finalBtn">Export video</button></div>
+        <div class="job" id="job" hidden></div>
+        <div id="files" style="margin-top:12px"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="room" id="room">
+      <div class="stagebox" id="stagebox">
+        <div class="stage" id="stage">
+          <video id="recording" playsinline preload="auto"></video>
+          <div class="cover" id="cover"></div>
+          <div class="over message" id="message" hidden></div>
+          <div class="flash" id="flash"><svg class="i solid" id="flashIcon"><use href="#i-play"/></svg></div>
+          <div class="over ended" id="replay" hidden>
+            <button class="cta" id="replayBtn"><svg class="i"><use href="#i-replay"/></svg>Replay</button>
+            <button class="cta quiet" id="continueBtn" hidden>Continue in the whole edit</button>
+          </div>
+        </div>
+        <div class="caption" id="caption" aria-hidden="true"><span class="before" id="capBefore"></span><span class="now" id="capNow"></span><span class="after" id="capAfter"></span></div>
+      </div>
+    </section>
+    <aside class="drawer" id="drawer" aria-label="Notes" hidden>
+      <header><h2>Notes</h2><span id="notesSummary"></span><span class="grow"></span><button class="btn" id="drawerClose" aria-label="Close notes" title="Close (Esc)"><svg class="i"><use href="#i-x"/></svg></button></header>
+      <ul class="notes" id="notes"></ul>
+      <form class="composer" id="composer">
+        <div class="meta"><span id="noteAt">0:00.00</span><span id="noteWhere"></span></div>
+        <input id="note" maxlength="400" autocomplete="off" placeholder="Note at this frame, then Enter" aria-label="Note at this frame">
+        <div class="problem" id="noteProblem" role="alert" hidden></div>
+      </form>
+    </aside>
+  </main>
+
+  <footer class="dock">
+    <div class="transport">
+      <button class="btn prev" id="prevBtn" aria-label="Previous part" title="Previous part ( [ )"><svg class="i solid"><use href="#i-prev"/></svg></button>
+      <button class="play" id="playBtn" aria-label="Play" title="Play (Space)"><svg class="i solid" id="playIcon"><use href="#i-play"/></svg></button>
+      <button class="btn next" id="nextBtn" aria-label="Next part" title="Next part ( ] )"><svg class="i solid"><use href="#i-next"/></svg></button>
+      <span class="clock" id="clock"><b id="now">0:00.00</b> / <span id="len">0:00.00</span></span>
+      <span class="frame" id="frame">f0</span>
+      <div class="side">
+        <span class="where" id="where"></span>
+        <div class="anchor"><button class="btn rate" id="rateBtn" aria-haspopup="menu" aria-expanded="false" title="Speed"><span id="rateLabel">1x</span></button><div class="menu up right" id="rateMenu" role="menu" hidden></div></div>
+        <button class="btn" id="loopBtn" aria-pressed="false" aria-label="Loop this part" title="Loop this part (L)"><svg class="i"><use href="#i-repeat"/></svg></button>
+        <button class="btn" id="muteBtn" aria-pressed="false" aria-label="Mute" title="Mute (M)"><svg class="i" id="muteIcon"><use href="#i-volume"/></svg></button>
+        <button class="btn fswrap" id="fsBtn" aria-label="Full screen" title="Full screen (F)"><svg class="i" id="fsIcon"><use href="#i-expand"/></svg></button>
+        <div class="anchor helpwrap">
+          <button class="btn" id="helpBtn" aria-haspopup="dialog" aria-expanded="false" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)"><svg class="i"><use href="#i-keys"/></svg></button>
+          <div class="menu up right sheet" id="helpMenu" role="dialog" aria-label="Keyboard shortcuts" hidden>
+            <h3>Keyboard</h3>
+            <dl class="keys">
+              <dt><kbd>Space</kbd></dt><dd>Play or pause</dd>
+              <dt><kbd>&larr;</kbd><kbd>&rarr;</kbd></dt><dd>One frame</dd>
+              <dt><kbd>Shift</kbd><kbd>&larr;</kbd></dt><dd>One second</dd>
+              <dt><kbd>[</kbd><kbd>]</kbd></dt><dd>Previous or next part</dd>
+              <dt><kbd>Home</kbd><kbd>End</kbd></dt><dd>Start or end</dd>
+              <dt><kbd>L</kbd></dt><dd>Loop this part</dd>
+              <dt><kbd>N</kbd></dt><dd>Write a note here</dd>
+              <dt><kbd>M</kbd></dt><dd>Mute</dd>
+              <dt><kbd>F</kbd></dt><dd>Full screen</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="timeline">
+      <div class="bar" id="bar" role="slider" tabindex="0" aria-label="Timeline" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
+        <div class="track" id="track"></div>
+        <div class="ghost" id="ghost" hidden></div>
+        <div class="head" id="head"></div>
+        <div class="tip" id="tip" hidden></div>
+      </div>
+    </div>
+  </footer>
+</div>
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
 <script type="module">
-const $ = id => document.getElementById(id);
+// The preview page: one file, no build step, no network but this project's own server.
+// Pieces, in order: basics, the edit and its films, the clock, drawing, input, panels, start-up.
+
+// ------------------------------------------------------------ basics
 const FPS = 30;
 const DESK = 1536;
+const $ = id => document.getElementById(id);
+const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
+const pad = n => String(n).padStart(2, '0');
+const sleep = ms => new Promise(done => setTimeout(done, ms));
+// Two painted frames, or 250 ms: a tab that is not showing never paints, so it must not wait for one.
+const frames = () => Promise.race([new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done))), sleep(250)]);
+const idle =  () => new Promise(done => (window.requestIdleCallback ? requestIdleCallback(done, { timeout: 300 }) : setTimeout(done, 40)));
+const within = (promise, ms, message) => {
+  let timer;
+  const late = new Promise((_, fail) => { timer = setTimeout(() => fail(new Error(message)), ms); });
+  return Promise.race([promise, late]).finally(() => clearTimeout(timer));
+};
+const clean = value => String(value?.stack || value?.message || value);
+const stamp = t => {
+  const cs = Math.round(Math.max(0, t) * 100);
+  return `${Math.floor(cs / 6000)}:${pad(Math.floor(cs / 100) % 60)}.${pad(cs % 100)}`;
+};
+const size = n => (n >= 1e6 ? `${(n / 1e6).toFixed(1)} MB` : `${Math.round(n / 1e3)} KB`);
+const ago = ms => {
+  const s = Math.max(0, (Date.now() - ms) / 1000);
+  return s < 60 ? 'just now' : s < 3600 ? `${Math.floor(s / 60)} min ago` : s < 86400 ? `${Math.floor(s / 3600)} h ago` : `${Math.floor(s / 86400)} d ago`;
+};
+const icon = (name, extra = '') => `<svg class="i ${extra}"><use href="#i-${name}"/></svg>`;
+const setIcon = (node, name) => node.firstElementChild.setAttribute('href', `#i-${name}`);
+const prefs = {
+  get(key, fallback) { try { const value = localStorage.getItem(`preview.${key}`); return value === null ? fallback : JSON.parse(value); } catch { return fallback; } },
+  set(key, value) { try { localStorage.setItem(`preview.${key}`, JSON.stringify(value)); } catch { /* storage can be blocked */ } },
+};
+
 const video = $('recording');
 const stage = $('stage');
-const message = $('message');
-const say = (text, error = false) => {
-  message.textContent = text;
-  message.className = error ? 'error' : '';
-  message.style.display = text ? 'grid' : 'none';
+const only = new URLSearchParams(location.search).get('scene') || '';
+
+// What the person sees and controls. The engine (c-engine.js) is the only writer.
+const S = {
+  time: 0, total: 0, playing: false, ended: false, loop: false, want: null,
+  rate: [.5, .75, 1, 1.25, 1.5, 2].includes(prefs.get('rate', 1)) ? prefs.get('rate', 1) : 1,
+  muted: prefs.get('muted', false) === true,
 };
-const stamp = t => `${Math.floor(t / 60)}:${(t % 60).toFixed(2).padStart(5, '0')}`;
-const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
+
+// ------------------------------------------------------------ toasts and menus
+function toast(text, kind = '', ms = 3600) {
+  const box = $('toasts');
+  const last = box.lastElementChild;
+  if (last && last.dataset.text === text) { clearTimeout(last._timer); last._timer = setTimeout(() => last.remove(), ms); return; }
+  const node = document.createElement('div');
+  node.className = `toast ${kind}`;
+  node.dataset.text = text;
+  node.innerHTML = icon(kind === 'error' ? 'alert' : kind === 'ok' ? 'check' : 'bolt');
+  const span = document.createElement('span');
+  span.textContent = text;
+  node.append(span);
+  box.append(node);
+  while (box.children.length > 3) box.firstElementChild.remove();
+  node._timer = setTimeout(() => node.remove(), ms);
+}
+
+const menus = [];
+function menu(button, panel, onOpen) {
+  const entry = { button, panel, onOpen };
+  menus.push(entry);
+  if (!panel.hasAttribute('tabindex')) panel.tabIndex = -1;
+  button.addEventListener('click', event => {
+    if (!panel.hidden) return closeMenu(entry);
+    closeMenus();
+    panel.hidden = false;
+    button.setAttribute('aria-expanded', 'true');
+    onOpen?.();
+    // Opened from the keyboard: put focus inside so the arrows work.
+    if (event.detail === 0) (panel.querySelector('[aria-checked=true], .mi, button, input') || panel).focus?.();
+  });
+  return entry;
+}
+function closeMenu(entry, refocus = false) {
+  entry.panel.hidden = true;
+  entry.button.setAttribute('aria-expanded', 'false');
+  if (refocus) entry.button.focus();
+}
+function closeMenus(except) { for (const entry of menus) if (entry !== except && !entry.panel.hidden) closeMenu(entry); }
+document.addEventListener('pointerdown', event => {
+  for (const entry of menus) if (!entry.panel.hidden && !entry.panel.contains(event.target) && !entry.button.contains(event.target)) closeMenu(entry);
+}, true);
+// A click on a button must not leave focus on it, or Space would press it again.
+document.addEventListener('mousedown', event => { if (event.target.closest('button, a')) event.preventDefault(); });
 
 // ------------------------------------------------------------ the edit
-const only = new URLSearchParams(location.search).get('scene');
-let edit = { PARTS: [] };
-let WORDS = [];
-let broken = null;
+// film/edit.mjs and the files it imports are read in a frame of their own: a new frame has a new
+// module cache, so a saved edit is read again without reloading this page (or stopping the sound).
+function loadEdit() {
+  return new Promise(resolve => {
+    const frame = document.createElement('iframe');
+    const key = Math.random().toString(36).slice(2);
+    const at = name => new URL(`film/${name}`, location.href.split('#')[0]).href;
+    const finish = result => { clearTimeout(timer); removeEventListener('message', onMessage); frame.remove(); resolve(result); };
+    const onMessage = event => { if (event.source === frame.contentWindow && event.data?.key === key) finish(event.data); };
+    const timer = setTimeout(() => finish({ ok: false, message: 'Reading film/edit.mjs took more than 10 seconds.' }), 10000);
+    addEventListener('message', onMessage);
+    frame.hidden = true;
+    frame.srcdoc = `<script type="module">
+const send = data => parent.postMessage({ key: ${JSON.stringify(key)}, ...data }, '*');
+const plain = value => JSON.parse(JSON.stringify(value ?? null));
 try {
-  edit = await import('./film/edit.mjs');
-  ({ WORDS } = await import('./film/words.mjs'));
-} catch (error) {
-  broken = `film/edit.mjs could not be loaded:\n\n${error.message || error}`;
-}
-const PARTS = edit.PARTS || [];
-const LEAD = edit.LEAD || 0;
-$('name').textContent = edit.NAME || 'Preview';
-// The tab names the video, so two previews are never mistaken for each other.
-document.title = `${edit.NAME || 'Preview'} · preview`;
-
-const segments = [];
-if (only) {
-  const index = PARTS.findIndex(part => part.film === only);
-  const part = PARTS[index];
-  const lead = index === 0 ? LEAD : 0;
-  // A scene the edit doesn't play has no sound, and is as long as it says.
-  segments.push(part ? { ...part, lead, start: 0, length: lead + part.to - part.from } : { film: only, lead: 0, start: 0, length: 0, silent: true });
-} else {
-  let at = 0;
-  PARTS.forEach((part, index) => {
-    const lead = index === 0 ? LEAD : 0;
-    const length = lead + part.to - part.from;
-    segments.push({ ...part, lead, start: at, length });
-    at += length;
+  const edit = await import(${JSON.stringify(at('edit.mjs'))});
+  const words = await import(${JSON.stringify(at('words.mjs'))}).catch(() => ({}));
+  send({ ok: true, data: plain({ NAME: edit.NAME, RECORDING: edit.RECORDING, SOURCE_FPS: edit.SOURCE_FPS, LEAD: edit.LEAD, PARTS: edit.PARTS, CLOSE: edit.CLOSE, MUTE: edit.MUTE, WORDS: words.WORDS }) });
+} catch (error) { send({ ok: false, message: String(error && error.message || error) }); }
+<` + `/script>`;
+    document.body.append(frame);
   });
 }
-let total = segments.reduce((sum, segment) => sum + segment.length, 0);
-const sound = Boolean(edit.RECORDING) && segments.some(segment => !segment.silent);
-if (sound) video.src = `media/${encodeURIComponent(edit.RECORDING)}`;
 
-const scenes = await fetch('scenes').then(response => response.json()).catch(() => []);
-$('scene').innerHTML = `<option value="">Whole edit</option>${scenes.map(name => `<option${name === only ? ' selected' : ''}>${name}</option>`).join('')}`;
-$('scene').onchange = event => { location.href = event.target.value ? `./?scene=${event.target.value}` : './'; };
+
+// ------------------------------------------------------------ the model: segments, words, films
+// M is rebuilt every time the edit is read. Everything else asks M, so an edit that changes
+// takes effect without the page restarting.
+let M = { name: '', recording: '', lead: 0, close: null, mute: [], words: [], whole: [], segments: [], sound: false, sceneStart: null, key: '', take: 0, error: '', loading: true };
+
+// A short fingerprint of the transcript, so a new take is noticed when the edit is read again.
+const hash = text => { let h = 5381; for (let i = 0; i < text.length; i++) h = ((h * 33) ^ text.charCodeAt(i)) >>> 0; return h; };
+
+function buildModel(data) {
+  const parts = Array.isArray(data.PARTS) ? data.PARTS : [];
+  const lead = Number(data.LEAD) || 0;
+  const whole = [];
+  let at = 0;
+  parts.forEach((part, index) => {
+    const own = index === 0 ? lead : 0;
+    const length = own + part.to - part.from;
+    whole.push({ ...part, lead: own, start: at, length });
+    at += length;
+  });
+  let segments = whole;
+  let sceneStart = null;
+  if (only) {
+    const index = parts.findIndex(part => part.film === only);
+    sceneStart = index >= 0 ? whole[index].start : null;
+    // A scene the edit does not play has no sound, and is as long as it says.
+    segments = [index >= 0 ? { ...whole[index], start: 0 } : { film: only, lead: 0, start: 0, length: 0, silent: true }];
+  }
+  return {
+    name: data.NAME || 'Preview', recording: data.RECORDING || '', lead, close: data.CLOSE || null,
+    mute: Array.isArray(data.MUTE) ? data.MUTE : [], words: Array.isArray(data.WORDS) ? data.WORDS : [],
+    whole, segments, sceneStart, error: '', loading: false,
+    take: hash(JSON.stringify(data.WORDS ?? [])),
+    sound: Boolean(data.RECORDING) && segments.some(segment => !segment.silent),
+    key: JSON.stringify([data.NAME, data.RECORDING, data.LEAD, data.PARTS, data.CLOSE, data.MUTE]),
+  };
+}
+
+const totalOf = segments => segments.reduce((sum, segment) => sum + segment.length, 0);
+const segmentAt = t => M.segments.find(segment => t < segment.start + segment.length) || M.segments.at(-1);
+
+// Where the recording is at a time in the cut, or null where it has none: a silent lead, a card
+// that holds after the voice, or a scene the edit does not play.
+function recAt(t) {
+  const segment = segmentAt(t);
+  if (!segment || segment.silent || !M.sound) return null;
+  const into = t - segment.start - segment.lead;
+  if (into < 0) return null;
+  const at = segment.from + into;
+  return video.duration && at >= video.duration - 1 / FPS ? null : at;
+}
+
+// The words around the one being said, found by bisecting the transcript.
+function wordAt(at) {
+  const words = M.words;
+  let low = 0, high = words.length;
+  while (low < high) { const mid = (low + high) >> 1; if (words[mid][1] <= at) low = mid + 1; else high = mid; }
+  return low - 1;
+}
 
 // ------------------------------------------------------------ films
-// Each film is its own page in a frame, posed by the same seek(t) the
-// renderer calls.
+// Each film is its own page in a frame, posed by the same seek(t) the renderer calls. Every film is
+// made up front and kept painted behind the one in view (each as its own layer, see .film in the
+// CSS), so a cut only changes which one is on top: the first paint of a film at its cut is what
+// used to freeze the picture there.
 const films = new Map();
-function film(name) {
-  if (films.has(name)) return films.get(name);
-  const node = document.createElement('iframe');
-  const entry = { node, api: null, info: null, error: null };
-  films.set(name, entry);
-  node.src = `film/index.html?scene=${name}`;
-  stage.insertBefore(node, message);
-  (async () => {
-    await new Promise(done => node.addEventListener('load', done, { once: true }));
-    for (let tries = 0; tries < 200 && !node.contentWindow.__film; tries++) await new Promise(done => setTimeout(done, 25));
-    const api = node.contentWindow.__film;
+const filmTokens = new Map();
+
+function loadFilm(name, replace = false) {
+  const old = films.get(name);
+  if (old && !replace) return old;
+  const token = (filmTokens.get(name) || 0) + 1;
+  filmTokens.set(name, token);
+  const node = document.createElement('div');
+  // A film that replaces another is painted behind it first, so the swap only changes which is on top.
+  node.className = old ? 'film under' : 'film';
+  node.setAttribute('aria-hidden', 'true');
+  const frame = document.createElement('iframe');
+  frame.tabIndex = -1;
+  frame.title = name;
+  frame.src = `film/index.html?scene=${encodeURIComponent(name)}`;
+  node.append(frame);
+  stage.insertBefore(node, video);
+  const entry = { name, node, api: null, info: null, error: '', loading: true, posedAt: null, done: null };
+  if (!old) films.set(name, entry);
+  const current = () => filmTokens.get(name) === token;
+  entry.done = (async () => {
+    await within(new Promise(done => frame.addEventListener('load', done, { once: true })), 20000, `film/index.html?scene=${name} did not load.`);
+    for (let tries = 0; tries < 200 && !frame.contentWindow?.__film; tries++) await sleep(25);
+    const api = frame.contentWindow?.__film;
     if (!api) throw new Error(`film/scenes/${name}.mjs did not start. Open film/index.html?scene=${name} under this address and look at the console.`);
-    entry.info = await api.ready;
+    entry.info = await within(api.ready, 20000, `The scene ${name} took more than 20 seconds to get ready.`);
     entry.api = api;
-    const segment = segments.find(s => s.film === name && s.silent);
-    if (segment) { segment.length = entry.info.duration; total = segment.length; layoutBar(); }
-  })().catch(error => { entry.error = String(error?.message || error); }).finally(() => { dirty = true; });
+  })().catch(error => { entry.error = clean(error); }).then(async () => {
+    entry.loading = false;
+    // A newer attempt (or a drop) took over: this node is only kept while it is the one in the map.
+    if (!current()) { if (films.get(name) !== entry) node.remove(); return; }
+    if (old) {
+      await frames();
+      if (!current()) { node.remove(); return; }
+      node.className = old.node.className;
+      films.set(name, entry);
+      old.node.remove();
+    }
+    const before = S.total;
+    fitSilent();
+    if (S.total !== before) {
+      buildBar();
+      if (S.want != null) { seek(S.want); S.want = null; }
+    }
+    R.stack = '';
+  });
   return entry;
 }
 
-// ------------------------------------------------------------ time
-let time = 0;
-let playing = false;
-let rate = 1;
-let dirty = true;
-let playSegment = null;
-let loopSegment = null;
-const segmentAt = t => segments.find(s => t < s.start + s.length) || segments.at(-1);
-// Where the recording is at a time in the cut, or null where it has no part
-// (a silent lead, or a scene outside the edit).
-const recordingAt = t => {
-  const segment = segmentAt(t);
-  if (!segment || segment.silent) return null;
-  const into = t - segment.start - segment.lead;
-  return into < 0 ? null : segment.from + into;
+function filmNames() { return [...new Set(M.segments.filter(segment => segment.film).map(segment => segment.film))]; }
+
+// A scene the edit does not play is as long as the scene says, which is known once its film has loaded.
+function fitSilent() {
+  for (const segment of M.segments) {
+    const info = segment.silent && films.get(segment.film)?.info;
+    if (info) segment.length = info.duration;
+  }
+  S.total = totalOf(M.segments);
+}
+
+// Nearest to the playhead first, so the film that is needed next is the first one made.
+function byDistance() {
+  const here = M.segments.indexOf(segmentAt(S.time));
+  const far = name => Math.abs(M.segments.findIndex(segment => segment.film === name) - here);
+  return (a, b) => far(a) - far(b);
+}
+
+let preloading = false;
+async function preloadFilms() {
+  if (preloading) return;
+  preloading = true;
+  try {
+    for (;;) {
+      // What is already loading (the film under the playhead) goes first.
+      await Promise.all([...films.values()].map(entry => entry.done));
+      const todo = filmNames().filter(name => !films.has(name)).sort(byDistance());
+      if (!todo.length) break;
+      await loadFilm(todo[0]).done;
+      await idle();
+    }
+  } finally { preloading = false; }
+}
+
+// Films that changed on disk are made again beside the old ones and swapped in when ready,
+// the nearest first, so the picture never goes blank and a save never makes a burst of work.
+async function replaceFilms(names) {
+  for (const name of [...names].sort(byDistance())) {
+    if (!films.has(name)) continue;
+    await loadFilm(name, true).done;
+    await idle();
+  }
+}
+
+// Frames are posed at the 30 fps the render uses, and only when the frame changes.
+function pose(entry, local) {
+  if (!entry.api || entry.error) return;
+  const t = Math.min(Math.floor(local * FPS + 1e-6) / FPS, entry.info.duration);
+  if (entry.posedAt === t) return;
+  try { entry.api.seek(t); entry.posedAt = t; } catch (error) { entry.error = clean(error); }
+}
+
+function dropFilms(names) {
+  for (const name of names) {
+    const entry = films.get(name);
+    if (!entry) continue;
+    filmTokens.set(name, (filmTokens.get(name) || 0) + 1);
+    entry.node.remove();
+    films.delete(name);
+  }
+}
+
+
+// ------------------------------------------------------------ the clock
+// The recording's sound is the master clock while it is playing and in step with the cut, so
+// picture and voice cannot drift. Everywhere else (a silent lead, a card holding after the voice,
+// a scene the edit does not play, sound that stopped keeping up) the wall clock runs the cut, so
+// the playhead always moves. A frame that throws is reported and the next one still runs.
+const E = {
+  last: performance.now(), beats: 0, errors: 0, recoveries: 0,
+  waitSince: 0, placedAt: 0, ctValue: -1, ctChangedAt: 0, progress: 0, lastTime: -1, warned: false,
+  cues: [], ringing: [],
 };
-function seek(t) {
-  time = clamp(t, 0, Math.max(0, total - 1 / FPS));
-  playSegment = null;
-  const at = recordingAt(time);
-  if (sound && at != null && Math.abs(video.currentTime - at) > 1 / 120) video.currentTime = at;
-  dirty = true;
-  history.replaceState(null, '', `${location.pathname}${location.search}#t=${time.toFixed(2)}`);
-}
-function play(on = !playing) {
-  playing = on && total > 0;
-  playSegment = null;
-  if (!playing) { video.pause(); seek(Math.round(time * FPS) / FPS); }
-  else if (time >= total - 2 / FPS) seek(0);
-  $('play').textContent = playing ? 'Pause' : 'Play';
+const audioReady = () => !video.seeking && video.readyState >= 3 && !video.paused && !video.ended;
+// The voice is off where the edit mutes a stretch of the recording (MUTE), and when the person mutes.
+const hushAt = at => S.muted || (at != null && M.mute.some(([from, to]) => at >= from && at < to));
+
+function blocked(error) {
+  if (error?.name === 'AbortError') return;
+  pauseNow();
+  toast(error?.name === 'NotAllowedError' ? 'Sound was blocked. Press Space or click Play to start.' : `Sound could not start: ${error?.message || error}`, 'error', 5000);
 }
 
-let last = performance.now();
-function tick(now) {
-  const dt = Math.min(.1, (now - last) / 1000);
-  last = now;
-  if (playing) {
-    const segment = segmentAt(time);
-    const at = recordingAt(time);
-    if (sound && at != null) {
-      // The recording keeps the time, so picture and sound can't drift. It
-      // only seeks where the edit jumps.
-      if (segment !== playSegment) {
-        if (!playSegment || Math.abs(video.currentTime - at) > .08) video.currentTime = at;
-        playSegment = segment;
-      }
-      video.playbackRate = rate;
-      if (video.paused) video.play().catch(() => {});
-      else if (!video.seeking && video.readyState >= 3) time = segment.start + segment.lead + video.currentTime - segment.from;
-    } else {
-      if (!video.paused) video.pause();
-      playSegment = null;
-      time += dt * rate;
-    }
-    if (loopSegment && time >= loopSegment.start + loopSegment.length - .5 / FPS) seek(loopSegment.start);
-    else if (time >= total - .5 / FPS) { time = total - 1 / FPS; play(false); }
-    dirty = true;
-  }
-  if (dirty) draw();
-  requestAnimationFrame(tick);
+function startAudio(at) {
+  E.placedAt = performance.now();
+  E.ctChangedAt = E.placedAt;
+  if (Math.abs(video.currentTime - at) > 1 / 120) { try { video.currentTime = at; } catch { /* not ready yet */ } }
+  video.playbackRate = S.rate;
+  video.muted = hushAt(at);
+  if (video.paused || video.ended) video.play()?.catch(blocked);
 }
 
-// ------------------------------------------------------------ picture
-function draw() {
-  dirty = false;
-  const segment = segmentAt(time);
-  if (!segment) return;
-  const local = time - segment.start;
-  const at = recordingAt(time);
-  let text = '';
-  let failed = false;
-  if (segment.film) {
-    const entry = film(segment.film);
-    if (entry.api) {
-      try { entry.api.seek(Math.min(local, entry.info.duration)); }
-      catch (error) { entry.error = String(error?.stack || error); }
-    }
-    if (entry.error) { text = `${segment.film}\n\n${entry.error}`; failed = true; }
-    else if (!entry.api) text = `Loading ${segment.film}...`;
-    for (const [name, other] of films) other.node.style.visibility = name === segment.film && other.api ? 'visible' : 'hidden';
-    video.style.opacity = 0;
-    $('where').textContent = `${segment.film} @ ${local.toFixed(2)}s`;
+function advance(now) {
+  const dt = clamp((now - E.last) / 1000, 0, .1);
+  E.last = now;
+  if (!S.playing || !M.segments.length) return;
+  const before = S.time;
+  const segment = segmentAt(before);
+  const at = recAt(before);
+  let next = before;
+
+  const hush = hushAt(at);
+  if (video.muted !== hush) video.muted = hush;
+
+  if (at == null) {
+    if (!video.paused) video.pause();
+    E.waitSince = 0;
+    next = before + dt * S.rate;
   } else {
-    for (const other of films.values()) other.node.style.visibility = 'hidden';
-    video.style.opacity = 1;
-    // A camera part punches in to the closer framing at each punchIn time.
-    const close = (segment.punchIn || []).filter(cut => at >= cut).length % 2 === 1 && edit.CLOSE;
-    const fit = stage.clientWidth / (video.videoWidth || 1920);
-    const zoom = close ? (video.videoWidth || 1920) / close.w : 1;
-    video.style.transform = close ? `translate(${-close.x * fit * zoom}px, ${-close.y * fit * zoom}px) scale(${zoom})` : 'none';
-    $('where').textContent = `camera @ recording ${at.toFixed(2)}s${close ? ' (close)' : ''}`;
+    const drift = video.currentTime - at;
+    if (video.currentTime !== E.ctValue) { E.ctValue = video.currentTime; E.ctChangedAt = now; }
+    const frozen = !video.paused && now - E.ctChangedAt > 500;
+    if (audioReady() && !frozen && Math.abs(drift) <= .25) {
+      E.waitSince = 0;
+      const heard = segment.start + segment.lead + (video.currentTime - segment.from);
+      next = heard >= before - 1 / FPS ? Math.max(before, heard) : heard;
+    } else {
+      if (!E.waitSince) E.waitSince = now;
+      if (now - E.waitSince > 1000) {
+        next = before + dt * S.rate;
+        if (!E.warned) { E.warned = true; toast('The sound is not keeping up, so the picture is playing on without it.', 'error', 5000); }
+        if (now - E.placedAt > 1000) startAudio(at);
+      } else if (!video.seeking && (Math.abs(drift) > .25 || frozen || video.paused || video.ended) && now - E.placedAt > 400) {
+        startAudio(at);
+      }
+    }
   }
-  say(text, failed);
-  // The next film loads before its cut.
-  const next = segments[segments.indexOf(segment) + 1];
-  if (next?.film && segment.start + segment.length - time < 4) film(next.film);
 
-  $('clock').textContent = `${stamp(time)} / ${stamp(total)}  f${Math.round(time * FPS)}`;
-  $('head').style.left = `${total ? time / total * 100 : 0}%`;
-  $('said').innerHTML = at == null ? '' : spoken(at);
+  if (S.loop && segment.length > 0 && next >= segment.start + segment.length - .5 / FPS) { seek(segment.start); return; }
+  if (next >= S.total - .5 / FPS) { finish(); return; }
+  fireCues(before, next);
+  S.time = next;
 }
-// The words around the one being said, which shows whether a cue is on it.
-function spoken(at) {
-  let lo = 0, hi = WORDS.length;
-  while (lo < hi) { const mid = (lo + hi) >> 1; if (WORDS[mid][1] <= at) lo = mid + 1; else hi = mid; }
-  const now = lo - 1;
-  const escape = text => text.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
-  return WORDS.slice(Math.max(0, now - 7), now + 6).map((word, k) => (Math.max(0, now - 7) + k === now ? `<mark>${escape(word[0])}</mark>` : escape(word[0]))).join(' ');
-}
-function layoutStage() {
-  const room = $('room');
-  const width = Math.max(160, Math.min(room.clientWidth - 24, (room.clientHeight - 24) * 16 / 9));
-  stage.style.width = `${width}px`;
-  stage.style.height = `${width * 9 / 16}px`;
-  for (const { node } of films.values()) node.style.transform = `scale(${width / DESK})`;
-  dirty = true;
-}
-new MutationObserver(layoutStage).observe(stage, { childList: true });
-addEventListener('resize', layoutStage);
 
-// ------------------------------------------------------------ the bar
-const bar = $('bar');
-let notes = [];
-function layoutBar() {
-  for (const node of [...bar.querySelectorAll('.part, .pin')]) node.remove();
-  for (const segment of segments) {
-    const node = document.createElement('div');
-    node.className = `part ${segment.film ? 'film' : 'camera'}`;
-    node.style.flex = `${segment.length} 0 0`;
-    node.textContent = segment.film || 'camera';
-    node.title = `${segment.film || 'camera'}  ${stamp(segment.start)} - ${stamp(segment.start + segment.length)}`;
-    bar.insertBefore(node, $('head'));
-  }
-  for (const note of notes) {
-    if (note.done || note.time == null || !total) continue;
-    const pin = document.createElement('div');
-    pin.className = 'pin';
-    pin.style.left = `${note.time / total * 100}%`;
-    bar.appendChild(pin);
-  }
-  dirty = true;
+// If the clock has not moved for a while with nothing waiting on it, start the sound again.
+function watchdog(now) {
+  if (!S.playing || document.hidden || S.time !== E.lastTime) { E.lastTime = S.time; E.progress = now; return; }
+  if (now - E.progress < 2500) return;
+  E.progress = now;
+  E.recoveries++;
+  E.waitSince = 0;
+  const at = recAt(S.time);
+  if (at != null) startAudio(at);
+  toast('Playback stopped for a moment, so it was started again.', 'error', 3000);
 }
-const scrub = event => { const box = bar.getBoundingClientRect(); seek(clamp((event.clientX - box.left) / box.width, 0, 1) * total); };
-bar.addEventListener('pointerdown', event => {
-  bar.setPointerCapture(event.pointerId);
-  if (playing) play(false);
-  scrub(event);
-  bar.onpointermove = scrub;
-});
-bar.addEventListener('pointerup', () => { bar.onpointermove = null; });
 
-// ------------------------------------------------------------ notes
-async function loadNotes() {
-  const text = await fetch('notes').then(response => response.text()).catch(() => '');
-  notes = [...text.matchAll(/^- \[( |x)\] (\S+) \((?:frame \d+)\) ([^:]+): (.*)$/gm)].map(([, done, at, where, body]) => {
-    const [minutes, seconds] = at.split(':').map(Number);
-    return { done: done === 'x', time: only ? null : minutes * 60 + seconds, at, where, body };
-  });
-  $('notes').innerHTML = notes.length ? '' : '<li class="empty">No notes yet. Press N at the frame you want to talk about.</li>';
-  for (const note of notes) {
-    const item = document.createElement('li');
-    if (note.done) item.className = 'done';
-    item.innerHTML = `<time></time><span></span>`;
-    item.firstChild.textContent = `${note.at}  ${note.where}`;
-    item.lastChild.textContent = note.body;
-    if (note.time != null) item.onclick = () => { play(false); seek(note.time); };
-    $('notes').appendChild(item);
+function tick(now) {
+  requestAnimationFrame(tick);
+  E.beats++;
+  for (const work of [advance, watchdog, render]) {
+    try { work(now); } catch (error) {
+      if (++E.errors <= 3) toast(`Something went wrong drawing a frame: ${error?.message || error}`, 'error', 6000);
+      console.error(error);
+    }
   }
-  layoutBar();
 }
-$('note').addEventListener('keydown', async event => {
-  event.stopPropagation();
-  if (event.key === 'Escape') { event.target.value = ''; event.target.blur(); return; }
-  if (event.key !== 'Enter' || !event.target.value.trim()) return;
-  const line = `${stamp(time)} (frame ${Math.round(time * FPS)}) ${$('where').textContent}: ${event.target.value.trim()}`;
-  event.target.value = '';
-  event.target.blur();
-  await fetch('notes', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ line }) });
-  loadNotes();
-});
 
 // ------------------------------------------------------------ controls
-$('play').onclick = () => play();
-$('rate').onchange = event => { rate = Number(event.target.value); };
-$('loop').onchange = event => { loopSegment = event.target.checked ? segmentAt(time) : null; };
+function seek(t) {
+  S.time = clamp(t, 0, Math.max(0, S.total - 1 / FPS));
+  S.ended = false;
+  stopSounds();
+  E.placedAt = 0;
+  if (S.playing) {
+    const at = recAt(S.time);
+    if (at != null && Math.abs(video.currentTime - at) > 1 / 120) { try { video.currentTime = at; } catch { /* not ready yet */ } }
+    E.waitSince = performance.now();
+    E.lastTime = -1;
+  }
+}
+
+// While paused the recording is moved to the playhead once a frame, so a scrub stays cheap.
+function placeVideo() {
+  if (S.playing || !M.sound) return;
+  const at = recAt(S.time);
+  if (at != null && Math.abs(video.currentTime - at) > 1 / 60) { try { video.currentTime = at; } catch { /* not ready yet */ } }
+}
+
+function play(on = !S.playing) {
+  if (!on) { if (S.playing) pauseNow(); return; }
+  if (!S.total || S.playing) return;
+  if (S.ended || S.time >= S.total - 2 / FPS) seek(0);
+  S.playing = true;
+  S.ended = false;
+  const now = performance.now();
+  Object.assign(E, { last: now, waitSince: now, progress: now, lastTime: -1, warned: false });
+  const at = recAt(S.time);
+  // Started here, inside the click or key press, so the browser lets the sound begin.
+  if (at != null) startAudio(at);
+}
+
+function pauseNow() {
+  S.playing = false;
+  S.time = clamp(Math.round(S.time * FPS) / FPS, 0, Math.max(0, S.total - 1 / FPS));
+  video.pause();
+  stopSounds();
+  E.waitSince = 0;
+}
+
+function finish() {
+  S.time = Math.max(S.time, S.total - 1 / FPS, 0);
+  S.playing = false;
+  S.ended = true;
+  video.pause();
+  stopSounds();
+}
+
+function step(frames) {
+  pauseNow();
+  seek(Math.round(S.time * FPS) / FPS + frames / FPS);
+}
+
+function jumpPart(direction) {
+  const index = M.segments.indexOf(segmentAt(S.time));
+  if (index < 0) return;
+  if (direction < 0) seek(S.time - M.segments[index].start > .3 ? M.segments[index].start : M.segments[Math.max(0, index - 1)].start);
+  else if (index < M.segments.length - 1) seek(M.segments[index + 1].start);
+}
+
+function setRate(rate) { S.rate = rate; video.playbackRate = rate; prefs.set('rate', rate); }
+function setMuted(on) { S.muted = on; video.muted = on; prefs.set('muted', on); }
+
+// The cut time of a point in the recording, for when the page was hidden and only the sound moved.
+function cutFromRecording(ct) {
+  const segment = M.segments.find(s => !s.silent && ct >= s.from && ct < s.to);
+  return segment ? segment.start + segment.lead + (ct - segment.from) : null;
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden || !S.playing) return;
+  const heard = audioReady() ? cutFromRecording(video.currentTime) : null;
+  if (heard != null) S.time = clamp(heard, 0, S.total);
+  Object.assign(E, { last: performance.now(), progress: performance.now(), lastTime: -1 });
+});
+
+// ------------------------------------------------------------ part sounds
+// A part can name sound effects (`sounds` in film/edit.mjs). compose lays them in at the part's start
+// plus `at`; here they play as the clock crosses that time in normal playback, not after a jump.
+function buildCues() {
+  stopSounds();
+  E.cues = M.segments
+    .flatMap(segment => (segment.sounds || []).map(sound => ({ time: segment.start + (sound.at || 0), file: sound.file, gain: sound.gain || 0 })))
+    .sort((a, b) => a.time - b.time);
+  for (const cue of E.cues) {
+    try { cue.audio = new Audio(`sounds/${encodeURIComponent(cue.file)}`); cue.audio.preload = 'auto'; cue.audio.volume = Math.min(1, 10 ** (cue.gain / 20)); } catch { cue.audio = null; }
+  }
+}
+function fireCues(from, to) {
+  if (to <= from || to - from > .3) return;
+  for (const cue of E.cues) {
+    if (cue.time <= from) continue;
+    if (cue.time > to) break;
+    if (S.muted || !cue.audio) continue;
+    cue.audio.currentTime = 0;
+    cue.audio.play()?.catch(() => {});
+    E.ringing.push(cue.audio);
+  }
+}
+function stopSounds() { for (const audio of E.ringing) audio.pause(); E.ringing = []; }
+
+
+// ------------------------------------------------------------ drawing
+// Every frame asks "what should the screen say?" and touches the page only where the answer changed.
+const R = {
+  stack: '', msg: '\0', vOpacity: -1, vTransform: null, cover: null, src: '',
+  now: '', len: '', frame: '', where: '', word: -2, mode: '', ended: null, loop: null,
+  seg: -1, aria: -1, head: -1, stageW: 320, barW: 0, fills: [], segs: [], fillEls: [], savedAt: -1, savedTime: -1,
+};
+
+const CAPTION = 36; // the height of the line of words under the picture
+function layoutStage() {
+  const box = $('stagebox');
+  const width = Math.max(160, Math.floor(Math.min(box.clientWidth, (box.clientHeight - CAPTION) * 16 / 9)));
+  stage.style.width = `${width}px`;
+  stage.style.height = `${Math.round(width * 9 / 16)}px`;
+  stage.style.setProperty('--scale', String(width / DESK));
+  R.stageW = width;
+  R.vTransform = null;
+}
+new ResizeObserver(layoutStage).observe($('stagebox'));
+new ResizeObserver(() => { R.barW = $('bar').clientWidth; R.head = -1; fitTags(); }).observe($('bar'));
+
+function stackFilms(current) {
+  const key = `${current}|${[...films.values()].map(entry => entry.name + (entry.api ? 1 : 0)).join()}`;
+  if (key === R.stack) return;
+  R.stack = key;
+  for (const entry of films.values()) {
+    const ready = Boolean(entry.api) && !entry.error;
+    entry.node.classList.toggle('show', ready && entry.name === current);
+    entry.node.classList.toggle('under', ready && entry.name !== current);
+  }
+}
+
+function setMessage(kind, title, body) {
+  const key = `${kind}|${title}|${body}`;
+  if (key === R.msg) return;
+  R.msg = key;
+  const node = $('message');
+  node.hidden = !kind;
+  node.className = `over message${kind === 'error' ? ' error' : ''}`;
+  node.replaceChildren();
+  if (!kind) return;
+  if (kind === 'busy') node.insertAdjacentHTML('beforeend', icon('busy', 'big spin'));
+  const head = document.createElement('div');
+  head.className = 'title';
+  head.textContent = title;
+  node.append(head);
+  if (body) {
+    const text = document.createElement('div');
+    text.className = 'body';
+    text.textContent = body;
+    node.append(text);
+  }
+}
+
+function drawMessage(segment, entry) {
+  if (M.loading) return setMessage('busy', 'Loading', '');
+  if (M.error) return setMessage('error', 'The edit could not be read', M.error);
+  if (!segment) return setMessage('info', 'The edit has no parts yet', 'Pick a scene from the list at the top to watch it on its own.');
+  if (entry?.error) return setMessage('error', segment.film, entry.error);
+  if (entry?.loading) return setMessage('busy', `Loading ${segment.film}`, '');
+  setMessage('', '', '');
+}
+
+function drawVideo(segment, at) {
+  let opacity = 0;
+  let transform = 'none';
+  let close = false;
+  if (!segment.film) {
+    opacity = 1;
+    // A camera part punches in to the closer framing at each punchIn time.
+    close = Boolean(at != null && M.close && (segment.punchIn || []).filter(cut => at >= cut).length % 2 === 1);
+    if (close) {
+      const width = video.videoWidth || 1920;
+      const fit = R.stageW / width;
+      const zoom = width / M.close.w;
+      transform = `translate(${-M.close.x * fit * zoom}px, ${-M.close.y * fit * zoom}px) scale(${zoom})`;
+    }
+  }
+  if (opacity !== R.vOpacity) { video.style.opacity = opacity; R.vOpacity = opacity; }
+  if (transform !== R.vTransform) { video.style.transform = transform; R.vTransform = transform; }
+  return close;
+}
+
+const labelOf = segment => segment.film || 'camera';
+
+function drawCaption(at) {
+  const index = at == null || !M.words.length ? -1 : wordAt(at);
+  if (index === R.word) return;
+  R.word = index;
+  const spoken = (from, to) => M.words.slice(Math.max(0, from), to).map(word => word[0]).join(' ');
+  $('capBefore').textContent = index < 0 ? '' : spoken(index - 10, index);
+  $('capNow').textContent = index < 0 ? '' : M.words[index][0];
+  $('capAfter').textContent = index < 0 ? '' : spoken(index + 1, index + 11);
+}
+
+function buildBar() {
+  const track = $('track');
+  track.replaceChildren();
+  Object.assign(R, { segs: [], fillEls: [], fills: [], seg: -1, aria: -1, head: -1 });
+  for (const segment of M.segments) {
+    const node = document.createElement('div');
+    node.className = `seg ${segment.film ? 'scene' : 'camera'}`;
+    node.style.flex = `${Math.max(segment.length, .01)} 1 0px`;
+    const body = document.createElement('div');
+    body.className = 'body';
+    const fill = document.createElement('div');
+    fill.className = 'fill';
+    const tag = document.createElement('div');
+    tag.className = 'tag';
+    const text = document.createElement('span');
+    text.textContent = labelOf(segment);
+    tag.append(text);
+    tag.insertAdjacentHTML('beforeend', icon('repeat', 'again'));
+    body.append(fill, tag);
+    node.append(body);
+    track.append(node);
+    R.segs.push(node);
+    R.fillEls.push(fill);
+  }
+  $('bar').setAttribute('aria-valuemax', S.total.toFixed(2));
+  fitTags();
+  drawPins();
+}
+
+// A name that does not fit its part is left out (half a name looks like a bug).
+// The tip over the bar and the label by the clock still say which part it is.
+function fitTags() {
+  const tags = [...$('track').querySelectorAll('.tag')];
+  tags.forEach(tag => tag.classList.remove('clipped'));
+  tags.forEach(tag => tag.classList.toggle('clipped', tag.firstChild.offsetWidth > tag.clientWidth - 16));
+}
+
+function drawChrome(segment, at, close) {
+  const now = stamp(S.time), len = stamp(S.total), frame = `f${Math.round(S.time * FPS)}`;
+  if (now !== R.now) { $('now').textContent = now; R.now = now; }
+  if (len !== R.len) { $('len').textContent = len; R.len = len; }
+  if (frame !== R.frame) { $('frame').textContent = frame; R.frame = frame; }
+  const where = !segment ? '' : segment.film ? `${segment.film} @ ${(S.time - segment.start).toFixed(2)}s`
+    : at == null ? 'camera' : `camera @ recording ${at.toFixed(2)}s${close ? ' (close)' : ''}`;
+  if (where !== R.where) { $('where').textContent = where; $('where').title = where; R.where = where; }
+
+  const mode = S.playing ? 'pause' : S.ended ? 'replay' : 'play';
+  if (mode !== R.mode) {
+    R.mode = mode;
+    setIcon($('playIcon'), mode);
+    $('playIcon').classList.toggle('solid', mode !== 'replay');
+    const label = { play: 'Play', pause: 'Pause', replay: 'Replay' }[mode];
+    $('playBtn').setAttribute('aria-label', label);
+    $('playBtn').title = `${label} (Space)`;
+  }
+  if (S.ended !== R.ended) {
+    R.ended = S.ended;
+    $('replay').hidden = !S.ended;
+    $('continueBtn').hidden = !(only && M.sceneStart != null);
+  }
+  if (S.loop !== R.loop) {
+    R.loop = S.loop;
+    $('loopBtn').setAttribute('aria-pressed', String(S.loop));
+    $('bar').classList.toggle('looping', S.loop);
+  }
+
+  const index = segment ? M.segments.indexOf(segment) : -1;
+  if (index !== R.seg) { R.segs.forEach((node, i) => node.classList.toggle('here', i === index)); R.seg = index; }
+  M.segments.forEach((part, i) => {
+    const fraction = part.length > 0 ? clamp((S.time - part.start) / part.length, 0, 1) : 0;
+    if (Math.abs(fraction - (R.fills[i] ?? -1)) > 1e-4) { R.fillEls[i].style.transform = `scaleX(${fraction})`; R.fills[i] = fraction; }
+  });
+  const x = S.total ? Math.round(S.time / S.total * R.barW * 2) / 2 : 0;
+  if (x !== R.head) { $('head').style.transform = `translateX(${x}px)`; R.head = x; }
+  const bucket = Math.floor(S.time * 4);
+  if (bucket !== R.aria) {
+    R.aria = bucket;
+    const bar = $('bar');
+    bar.setAttribute('aria-valuenow', S.time.toFixed(2));
+    bar.setAttribute('aria-valuetext', `${stamp(S.time)}${segment ? ` in ${labelOf(segment)}` : ''}`);
+  }
+  drawComposer();
+}
+
+function render(now) {
+  const segment = segmentAt(S.time);
+  placeVideo();
+  let entry = null;
+  let at = null;
+  let close = false;
+  if (segment) {
+    at = recAt(S.time);
+    if (segment.film) { entry = loadFilm(segment.film); pose(entry, S.time - segment.start); }
+    const showing = Boolean(segment.film && entry.api && !entry.error);
+    stackFilms(showing ? segment.film : null);
+    close = drawVideo(segment, at);
+    if (showing !== R.cover) { R.cover = showing; $('cover').hidden = showing; }
+  }
+  drawMessage(segment, entry);
+  drawCaption(at);
+  drawChrome(segment, at, close);
+  // The address keeps the playhead, so a reload (or a link) comes back to the same place.
+  if (now - R.savedAt > 500 && S.time !== R.savedTime) {
+    R.savedAt = now;
+    R.savedTime = S.time;
+    try { history.replaceState(null, '', `${location.pathname}${location.search}#t=${S.time.toFixed(2)}`); } catch { /* some frames forbid it */ }
+  }
+}
+
+
+// ------------------------------------------------------------ input
+// Everything the person can press, click or drag. A control only calls the engine (c-engine.js)
+// and never keeps a copy of the state, so the buttons cannot disagree with the clock.
+
+function flash(name) {
+  const node = $('flash');
+  setIcon($('flashIcon'), name);
+  node.classList.remove('go');
+  void node.offsetWidth;
+  node.classList.add('go');
+}
+
+// Play or pause, and show the new state on the stage for a moment (as video sites do).
+function toggle() {
+  const was = S.playing;
+  play(!was);
+  if (S.playing !== was) flash(S.playing ? 'play' : 'pause');
+}
+
+function fullscreen() {
+  if (!document.fullscreenEnabled) return;
+  const asked = document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+  asked?.catch(() => toast('Full screen is not available in this window.', 'error'));
+}
+$('fsBtn').hidden = !document.fullscreenEnabled;
+document.addEventListener('fullscreenchange', () => {
+  const on = Boolean(document.fullscreenElement);
+  const label = on ? 'Exit full screen' : 'Full screen';
+  setIcon($('fsIcon'), on ? 'shrink' : 'expand');
+  $('fsBtn').setAttribute('aria-label', label);
+  $('fsBtn').title = `${label} (F)`;
+});
+
+function drawMute() {
+  const label = S.muted ? 'Unmute' : 'Mute';
+  setIcon($('muteIcon'), S.muted ? 'muted' : 'volume');
+  $('muteBtn').setAttribute('aria-pressed', String(S.muted));
+  $('muteBtn').setAttribute('aria-label', label);
+  $('muteBtn').title = `${label} (M)`;
+}
+function mute() { setMuted(!S.muted); drawMute(); }
+
+// ------------------------------------------------------------ menus
+function menuItem(label, checked, onPick, hint = '') {
+  const button = document.createElement('button');
+  button.className = 'mi';
+  button.setAttribute('role', 'menuitemradio');
+  button.setAttribute('aria-checked', String(checked));
+  const text = document.createElement('span');
+  text.textContent = label;
+  button.append(text);
+  if (hint) {
+    const note = document.createElement('span');
+    note.className = 'hint';
+    note.textContent = hint;
+    button.append(note);
+  }
+  button.insertAdjacentHTML('beforeend', icon('check', 'tick'));
+  button.addEventListener('click', onPick);
+  return button;
+}
+
+const RATES = [.5, .75, 1, 1.25, 1.5, 2];
+function drawRate() {
+  $('rateLabel').textContent = `${S.rate}x`;
+  for (const item of $('rateMenu').children) item.setAttribute('aria-checked', String(Number(item.dataset.rate) === S.rate));
+}
+// Picked with the keyboard, focus goes back to the button; picked with the mouse, it stays off it
+// (a focused button would take the next Space press).
+for (const rate of RATES) {
+  const item = menuItem(`${rate}x`, rate === S.rate, event => { setRate(rate); drawRate(); closeMenu(rateEntry, event.detail === 0); });
+  item.dataset.rate = String(rate);
+  $('rateMenu').append(item);
+}
+const rateEntry = menu($('rateBtn'), $('rateMenu'), drawRate);
+menu($('helpBtn'), $('helpMenu'));
+drawRate();
+drawMute();
+
+const openMenu = () => menus.find(entry => !entry.panel.hidden);
+
+// The arrow keys move through the items of an open list.
+function menuKey(event, entry) {
+  const items = [...entry.panel.querySelectorAll('.mi')];
+  const at = items.indexOf(document.activeElement);
+  const to = { ArrowDown: at + 1, ArrowUp: at < 0 ? items.length - 1 : at - 1, Home: 0, End: items.length - 1 }[event.key];
+  if (!items.length || to === undefined) return false;
+  items[(to + items.length) % items.length].focus();
+  return true;
+}
+
+// ------------------------------------------------------------ buttons and the stage
+$('playBtn').addEventListener('click', () => play());
+$('prevBtn').addEventListener('click', () => jumpPart(-1));
+$('nextBtn').addEventListener('click', () => jumpPart(1));
+$('loopBtn').addEventListener('click', () => { S.loop = !S.loop; });
+$('muteBtn').addEventListener('click', mute);
+$('fsBtn').addEventListener('click', fullscreen);
+$('replayBtn').addEventListener('click', () => { seek(0); play(true); });
+$('continueBtn').addEventListener('click', () => { if (M.sceneStart != null) location.href = `./#t=${M.sceneStart.toFixed(2)}`; });
+// A click that only closes a menu is not also a click on the picture.
+let menuWasOpen = false;
+addEventListener('pointerdown', () => { menuWasOpen = Boolean(openMenu()); }, true);
+stage.addEventListener('click', event => {
+  if (menuWasOpen) { menuWasOpen = false; return; }
+  if (!event.target.closest('button')) toggle();
+});
+stage.addEventListener('dblclick', event => { if (!event.target.closest('button')) fullscreen(); });
+
+// ------------------------------------------------------------ the timeline
+const bar = $('bar');
+let drag = null;
+const barX = event => {
+  const box = bar.getBoundingClientRect();
+  return { x: clamp(event.clientX - box.left, 0, box.width), width: Math.max(1, box.width) };
+};
+const timeAt = event => { const { x, width } = barX(event); return x / width * S.total; };
+
+function hover(event) {
+  if (!S.total) return;
+  const { x, width } = barX(event);
+  const t = x / width * S.total;
+  const tip = $('tip');
+  $('ghost').hidden = false;
+  $('ghost').style.left = `${x}px`;
+  tip.hidden = false;
+  tip.textContent = `${stamp(t)}\u00a0\u00a0${labelOf(segmentAt(t))}`;
+  tip.style.left = `${clamp(x - tip.offsetWidth / 2, 0, Math.max(0, width - tip.offsetWidth))}px`;
+}
+function unhover() { $('ghost').hidden = true; $('tip').hidden = true; }
+
+bar.addEventListener('pointerdown', event => {
+  if (event.button !== 0 || !S.total) return;
+  const pin = event.target.closest('.pin');
+  if (pin) { pauseNow(); seek(Number(pin.dataset.time)); return; }
+  try { bar.setPointerCapture(event.pointerId); } catch { /* the pointer is already gone */ }
+  drag = { id: event.pointerId, resume: S.playing };
+  if (S.playing) pauseNow();
+  seek(timeAt(event));
+  hover(event);
+});
+bar.addEventListener('pointermove', event => {
+  hover(event);
+  if (drag && event.pointerId === drag.id) seek(timeAt(event));
+});
+bar.addEventListener('pointerleave', () => { if (!drag) unhover(); });
+
+// However a drag ends (let go, cancelled by the system, capture lost) the sound comes back.
+function endDrag(event) {
+  if (!drag || event.pointerId !== drag.id) return;
+  const { resume } = drag;
+  drag = null;
+  try { bar.releasePointerCapture(event.pointerId); } catch { /* already released */ }
+  if (event.pointerType !== 'mouse' || !bar.matches(':hover')) unhover();
+  if (resume && S.time < S.total - 2 / FPS) play(true);
+}
+for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) bar.addEventListener(type, endDrag);
+
+// ------------------------------------------------------------ keys
+const typing = node => node instanceof Element && node.matches('input, textarea, select, [contenteditable=""], [contenteditable="true"]');
+
 addEventListener('keydown', event => {
-  if (event.target.matches('input:not([type=checkbox]), select') || event.ctrlKey || event.metaKey || event.altKey) return;
-  const step = event.shiftKey ? 1 : 1 / FPS;
-  const index = segments.indexOf(segmentAt(time));
-  const keys = {
-    ' ': () => play(),
-    ArrowLeft: () => { play(false); seek(time - step); },
-    ArrowRight: () => { play(false); seek(time + step); },
-    '[': () => seek(time - segments[index].start > .3 ? segments[index].start : segments[Math.max(0, index - 1)].start),
-    ']': () => seek(segments[Math.min(segments.length - 1, index + 1)].start),
+  if (event.defaultPrevented || event.isComposing || event.ctrlKey || event.metaKey || event.altKey) return;
+  const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+
+  if (typing(event.target)) {
+    if (key === 'Escape') { event.preventDefault(); escapeNote(); }
+    return;
+  }
+  const entry = openMenu();
+  if (key === 'Escape') {
+    if (entry) { event.preventDefault(); closeMenu(entry, entry.panel.contains(document.activeElement)); }
+    else if (drawerOpen) { event.preventDefault(); setDrawer(false); }
+    return;
+  }
+  if (entry && menuKey(event, entry)) { event.preventDefault(); return; }
+  // Space and Enter press the button that has focus; every other key is ours.
+  if ((key === ' ' || key === 'Enter') && event.target.closest?.('button, a')) return;
+  if (event.repeat && key !== 'ArrowLeft' && key !== 'ArrowRight') return;
+
+  const act = {
+    ' ': toggle, k: toggle,
+    ArrowLeft: () => step(event.shiftKey ? -FPS : -1),
+    ArrowRight: () => step(event.shiftKey ? FPS : 1),
+    '[': () => jumpPart(-1),
+    ']': () => jumpPart(1),
     Home: () => seek(0),
-    l: () => { $('loop').click(); },
-    n: () => { play(false); $('note').focus(); },
-  };
-  const act = keys[event.key.length === 1 ? event.key.toLowerCase() : event.key];
-  if (!act || !segments.length) return;
+    End: () => { pauseNow(); seek(S.total); },
+    l: () => { S.loop = !S.loop; },
+    n: () => { pauseNow(); setDrawer(true, { focus: true }); },
+    m: mute,
+    f: fullscreen,
+    // detail 1 reads as a mouse click, so focus does not move into the list or back to the button
+    '?': () => $('helpBtn').dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 })),
+  }[key];
+  if (!act) return;
   event.preventDefault();
   act();
 });
 
-// Saving a file in film/ reloads the page where it was.
-new EventSource('events').onmessage = () => location.reload();
+
+// ------------------------------------------------------------ panels
+// The scene list, the notes drawer, the export sheet and the small status pill at the top.
+
+// A time in the whole cut: notes are stamped with it, so a note made while watching one scene
+// still says where that moment is in the finished video.
+const cutTime = () => (M.sceneStart != null ? M.sceneStart + S.time : S.time);
+
+// ------------------------------------------------------------ the status pill
+let pillTimer = 0;
+function pill(text, { bad = false, ms = 0, title = '' } = {}) {
+  const node = $('pill');
+  clearTimeout(pillTimer);
+  node.textContent = text;
+  node.title = title;
+  node.classList.toggle('bad', bad);
+  node.hidden = false;
+  if (ms) pillTimer = setTimeout(() => { node.hidden = true; }, ms);
+}
+function clearPill() { clearTimeout(pillTimer); $('pill').hidden = true; }
+function updated() {
+  const now = new Date();
+  pill(`Updated ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`, { ms: 6000 });
+}
+
+// ------------------------------------------------------------ scenes
+let sceneNames = null;
+let sceneKey = '';
+
+function drawScenes() {
+  const inEdit = [...new Set(M.whole.map(part => part.film).filter(Boolean))];
+  const others = (sceneNames || []).filter(name => !inEdit.includes(name));
+  if (only && !inEdit.includes(only) && !others.includes(only)) others.unshift(only);
+  const key = [only, inEdit, others].join('|');
+  if (key === sceneKey) return;
+  sceneKey = key;
+  const open = name => { location.href = `./?scene=${encodeURIComponent(name)}`; };
+  // Back to the whole edit at the moment being watched, when the edit plays this scene.
+  const whole = () => { location.href = M.sceneStart != null ? `./#t=${cutTime().toFixed(2)}` : './'; };
+  const items = [menuItem('Whole edit', !only, () => (only ? whole() : closeMenus()))];
+  if (inEdit.length || others.length) items.push(document.createElement('hr'));
+  for (const name of inEdit) items.push(menuItem(name, name === only, () => (name === only ? closeMenus() : open(name))));
+  for (const name of others) items.push(menuItem(name, name === only, () => (name === only ? closeMenus() : open(name)), 'not in the edit'));
+  $('sceneMenu').replaceChildren(...items);
+}
+
+async function loadScenes() {
+  try {
+    const response = await fetch('scenes', { cache: 'no-store' });
+    const list = response.ok ? await response.json() : null;
+    if (Array.isArray(list)) { sceneNames = list.map(String); drawScenes(); }
+  } catch { /* the list stays as it was */ }
+}
+menu($('sceneBtn'), $('sceneMenu'), () => { drawScenes(); loadScenes(); });
+$('sceneLabel').textContent = only ? `Scene: ${only}` : 'Whole edit';
+
+// ------------------------------------------------------------ notes
+// review/notes.md is the one place notes live; this list only reads it and appends to it.
+let notes = null;
+let notesKey = '';
+let notesAt = 0;
+
+async function loadNotes() {
+  notesAt = Date.now();
+  try {
+    const response = await fetch('notes', { cache: 'no-store' });
+    if (!response.ok) return;
+    const text = await response.text();
+    notes = [...text.matchAll(/^- \[( |x)\] (\S+) \((?:frame \d+)\) ([^:]+): (.*)$/gm)].map(([, done, at, where, body]) => {
+      const [minutes, seconds] = at.split(':').map(Number);
+      const time = minutes * 60 + seconds;
+      return { done: done === 'x', time: Number.isFinite(time) ? time : null, at, where, body };
+    });
+  } catch { return; }
+  drawNotes();
+}
+
+// Where a note sits on this page's own clock, or null when this page does not show that moment.
+function noteAt(note) {
+  if (note.time == null) return null;
+  if (!only) return note.time;
+  const part = M.sceneStart != null ? M.whole.find(candidate => candidate.film === only) : null;
+  if (part && note.time >= part.start && note.time < part.start + part.length) return note.time - part.start;
+  const own = /^(\S+) @ ([\d.]+)s$/.exec(note.where);
+  return own && own[1] === only ? Number(own[2]) : null;
+}
+
+function goToNote(note) {
+  const at = noteAt(note);
+  if (at != null) { pauseNow(); seek(at); }
+  else if (only && note.time != null) location.href = `./#t=${note.time.toFixed(2)}`;
+  else toast('That moment is not in this video.', 'error', 2500);
+}
+
+function drawNotes() {
+  if (!notes) return;
+  const open = notes.filter(note => !note.done).length;
+  $('notesCount').hidden = open === 0;
+  $('notesCount').textContent = String(open);
+  $('notesSummary').textContent = notes.length ? `${open} open${notes.length > open ? `, ${notes.length - open} done` : ''}` : '';
+  const key = JSON.stringify(notes);
+  if (key !== notesKey) {
+    notesKey = key;
+    const rows = notes.map(note => {
+      const item = document.createElement('li');
+      const row = document.createElement('button');
+      row.className = `note${note.done ? ' done' : ''}`;
+      for (const [name, text] of [['at', note.at], ['text', note.body], ['where2', note.where]]) {
+        const cell = document.createElement('span');
+        cell.className = name;
+        cell.textContent = text;
+        row.append(cell);
+      }
+      row.title = only && noteAt(note) == null ? 'Open this moment in the whole edit' : 'Go to this moment';
+      row.addEventListener('click', () => goToNote(note));
+      item.append(row);
+      return item;
+    });
+    if (!rows.length) {
+      const empty = document.createElement('li');
+      empty.className = 'empty';
+      empty.textContent = 'No notes yet. Press N at the frame you want to talk about.';
+      rows.push(empty);
+    }
+    $('notes').replaceChildren(...rows);
+  }
+  drawPins();
+}
+
+// One dot on the timeline for each open note this page can show.
+function drawPins() {
+  const bar = $('bar');
+  for (const pin of bar.querySelectorAll('.pin')) pin.remove();
+  if (!notes || !S.total) return;
+  for (const note of notes) {
+    const at = note.done ? null : noteAt(note);
+    if (at == null || at > S.total) continue;
+    const pin = document.createElement('div');
+    pin.className = 'pin';
+    pin.style.left = `${at / S.total * 100}%`;
+    pin.dataset.time = at.toFixed(3);
+    pin.title = `${note.at}  ${note.body}`;
+    bar.append(pin);
+  }
+}
+
+// The notes file can be ticked off by someone else while the page is open.
+function refreshNotes() { if (Date.now() - notesAt > 2000) loadNotes(); }
+addEventListener('focus', refreshNotes);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshNotes(); });
+
+// ------------------------------------------------------------ the drawer and the composer
+let drawerOpen = false;
+let composerKey = '';
+// The drawer is docked (beside or under the picture) unless the window is too small, then it floats over it.
+const docked = () => getComputedStyle($('drawer')).position !== 'absolute';
+
+function setDrawer(open, { focus = false } = {}) {
+  drawerOpen = open;
+  $('drawer').hidden = !open;
+  $('notesBtn').setAttribute('aria-pressed', String(open));
+  if (open) {
+    composerKey = '';
+    drawComposer();
+    loadNotes();
+    if (focus) $('note').focus();
+  } else {
+    noteProblem('');
+    if ($('drawer').contains(document.activeElement)) document.activeElement.blur();
+  }
+  // Remembered only where it is docked; a floating drawer would cover the picture on every load.
+  if (docked()) prefs.set('drawer', open);
+}
+$('notesBtn').addEventListener('click', () => setDrawer(!drawerOpen));
+$('drawerClose').addEventListener('click', () => setDrawer(false));
+
+function drawComposer() {
+  if (!drawerOpen) return;
+  const at = stamp(cutTime());
+  const key = `${at}|${R.where}`;
+  if (key === composerKey) return;
+  composerKey = key;
+  $('noteAt').textContent = at;
+  $('noteWhere').textContent = R.where;
+}
+
+function noteProblem(message) {
+  $('noteProblem').textContent = message || '';
+  $('noteProblem').hidden = !message;
+}
+$('note').addEventListener('input', () => noteProblem(''));
+
+function escapeNote() {
+  const input = $('note');
+  input.value = '';
+  noteProblem('');
+  input.blur();
+}
+
+let saving = false;
+$('composer').addEventListener('submit', async event => {
+  event.preventDefault();
+  const input = $('note');
+  const text = input.value.replace(/\s+/g, ' ').trim();
+  if (!text || saving) return;
+  saving = true;
+  const time = cutTime();
+  const line = `${stamp(time)} (frame ${Math.round(time * FPS)}) ${R.where || 'edit'}: ${text}`;
+  const before = notes ? notes.length : 0;
+  try {
+    const response = await fetch('notes', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ line }) });
+    if (!response.ok) throw new Error(`The server answered ${response.status}.`);
+    input.value = '';
+    input.blur();
+    noteProblem('');
+    await loadNotes();
+    const list = $('notes');
+    list.scrollTop = list.scrollHeight;
+    // The new row lights up where the eye already is, so no message has to cover the box.
+    const fresh = notes && notes.length > before ? list.querySelector('li:last-child .note') : null;
+    if (fresh) { fresh.classList.add('fresh'); setTimeout(() => fresh.classList.remove('fresh'), 1500); }
+  } catch (error) {
+    const why = error instanceof TypeError ? 'The preview server is not answering.' : String(error?.message || error);
+    if (drawerOpen) noteProblem(`Not saved. ${why} Press Enter to try again.`);
+    else toast(`The note was not saved. ${why} Your text is still in the box.`, 'error', 6000);
+  } finally { saving = false; }
+});
 
 // ------------------------------------------------------------ export
-// Export video and Quick draft run deliver.mjs on the server; the links
-// download the newest finished file. A reload while one runs picks it up.
-const size = n => n >= 1e6 ? `${(n / 1e6).toFixed(1)} MB` : `${Math.round(n / 1e3)} KB`;
-let exporting = null;
-function showExport(state) {
-  const job = $('job');
-  const what = state.draft ? 'Draft' : 'Export';
-  const log = state.log.join('\n');
-  $('export').disabled = $('draft').disabled = state.running;
-  job.textContent = state.running ? `${what} ${state.seconds}s: ${state.log.at(-1) || 'starting'}`
-    : state.ok === false ? `${what} failed. Click for its log.`
-    : state.ok ? `${what} done in ${state.seconds}s.` : '';
-  job.className = state.running ? 'running' : state.ok === false ? 'failed' : '';
-  job.title = log;
-  job.onclick = state.running || state.ok === false ? () => { say(`${log}\n\n(Click to close.)`, state.ok === false); message.dataset.log = '1'; } : null;
-  const files = [[state.video, 0], [state.draftVideo, 1]].filter(([video]) => video).sort(([a], [b]) => b.time - a.time);
-  $('downloads').innerHTML = '';
-  for (const [video, draft] of files) {
-    const link = document.createElement('a');
-    link.className = 'button';
-    link.href = `download?draft=${draft}`;
-    link.download = video.file;
-    link.textContent = `Download ${draft ? 'draft' : 'video'} (${size(video.size)})`;
-    link.title = `build/${video.file}, made ${new Date(video.time).toLocaleString()}`;
-    $('downloads').append(link, ' ');
+// Quick draft and Export video run deliver.mjs on the server. The sheet shows how it is going,
+// and keeps asking while it runs, so closing the sheet or reloading the page loses nothing.
+const exp = { state: null, timer: 0, failures: 0, unseen: false, filesKey: '', statusKey: '' };
+const job = { status: document.createElement('div'), log: document.createElement('pre') };
+job.status.className = 'status';
+$('job').append(job.status, job.log);
+
+function drawExport() {
+  const state = exp.state;
+  const running = Boolean(state?.running);
+  const failed = !running && state?.ok === false;
+  const done = !running && state?.ok === true;
+  const seconds = Math.round(Number(state?.seconds) || 0);
+
+  $('draftBtn').disabled = $('finalBtn').disabled = running;
+  setIcon($('exportIcon'), running ? 'busy' : 'down');
+  $('exportIcon').classList.toggle('spin', running);
+  $('exportLabel').textContent = running ? `${state.draft ? 'Drafting' : 'Exporting'} ${seconds}s` : 'Export';
+  $('exportDot').hidden = !(exp.unseen && (failed || done));
+  $('exportDot').className = `dot ${failed ? 'bad' : 'ok'}`;
+
+  $('job').hidden = !(running || failed || done);
+  const what = state?.draft ? 'quick draft' : 'video';
+  const text = running ? `Making the ${what}, ${seconds}s`
+    : failed ? `The ${what} failed after ${seconds}s`
+    : done ? `The ${what} is ready (${seconds}s)` : '';
+  const statusKey = `${running}|${failed}|${text}`;
+  if (statusKey !== exp.statusKey) {
+    exp.statusKey = statusKey;
+    job.status.className = `status${failed ? ' bad' : ''}`;
+    job.status.innerHTML = icon(running ? 'busy' : failed ? 'alert' : 'check', running ? 'spin' : '');
+    const label = document.createElement('span');
+    label.textContent = text;
+    job.status.append(label);
   }
-  clearTimeout(exporting);
-  if (state.running) exporting = setTimeout(checkExport, 1000);
+  const lines = (state?.log || []).slice(running ? -6 : -40);
+  const log = lines.join('\n');
+  if (job.log.textContent !== log) {
+    job.log.textContent = log;
+    job.log.scrollTop = job.log.scrollHeight;
+  }
+  job.log.hidden = !log;
+
+  const files = [[state?.video, 0], [state?.draftVideo, 1]].filter(([file]) => file).sort(([a], [b]) => b.time - a.time);
+  const filesKey = files.map(([file, draft]) => `${draft}|${file.file}|${file.size}|${ago(file.time)}`).join('\n');
+  if (filesKey !== exp.filesKey) {
+    exp.filesKey = filesKey;
+    $('files').replaceChildren(...files.map(([file, draft]) => {
+      const link = document.createElement('a');
+      link.className = 'dl';
+      link.href = `download?draft=${draft}`;
+      link.download = file.file;
+      link.title = `build/${file.file}`;
+      link.insertAdjacentHTML('beforeend', icon('down'));
+      const name = document.createElement('span');
+      name.textContent = draft ? 'Download quick draft' : 'Download video';
+      const small = document.createElement('small');
+      small.textContent = `${size(file.size)}, ${ago(file.time)}`;
+      link.append(name, small);
+      return link;
+    }));
+  }
+  $('files').hidden = !files.length;
 }
-const checkExport = () => fetch('export').then(response => response.json()).then(showExport).catch(() => {});
-const startExport = draft => fetch(`export?draft=${draft ? 1 : 0}`, { method: 'POST' }).then(response => response.json()).then(showExport);
-$('export').onclick = () => startExport(false);
-$('draft').onclick = () => startExport(true);
-message.addEventListener('click', () => { if (message.dataset.log) { delete message.dataset.log; say(''); } });
-checkExport();
+
+function showExport(state) {
+  const was = Boolean(exp.state?.running);
+  exp.state = state;
+  exp.failures = 0;
+  if (was && !state.running) {
+    const seen = !$('exportMenu').hidden;
+    exp.unseen = !seen;
+    const what = state.draft ? 'quick draft' : 'video';
+    const hint = state.ok ? 'Open Export to download it.' : 'Open Export to read why.';
+    toast(`The ${what} ${state.ok ? 'is ready' : 'failed'}.${seen ? '' : ` ${hint}`}`, state.ok ? 'ok' : 'error', 6000);
+  }
+  drawExport();
+  clearTimeout(exp.timer);
+  if (state.running) exp.timer = setTimeout(pollExport, 1000);
+}
+
+async function pollExport() {
+  clearTimeout(exp.timer);
+  try {
+    const response = await fetch('export', { cache: 'no-store' });
+    if (!response.ok) throw new Error(String(response.status));
+    showExport(await response.json());
+  } catch {
+    // The server may be restarting: keep asking while a job was running, then give up quietly.
+    if (exp.state?.running && ++exp.failures < 8) exp.timer = setTimeout(pollExport, 2000);
+  }
+}
+
+async function startExport(draft) {
+  try {
+    const response = await fetch(`export?draft=${draft ? 1 : 0}`, { method: 'POST' });
+    const state = await response.json().catch(() => null);
+    if (!state) throw new Error(`The server answered ${response.status}.`);
+    showExport(state);
+    if (response.status === 409) toast('A video is already being made.', '', 2500);
+  } catch (error) {
+    toast(`Could not start the export. ${error?.message || error}`, 'error', 5000);
+  }
+}
+$('draftBtn').addEventListener('click', () => startExport(true));
+$('finalBtn').addEventListener('click', () => startExport(false));
+menu($('exportBtn'), $('exportMenu'), () => { exp.unseen = false; exp.filesKey = ''; drawExport(); job.log.scrollTop = job.log.scrollHeight; pollExport(); });
+
+
+// ------------------------------------------------------------ live refresh
+// The server says which files under film/ were saved. The page reads the edit again and makes the
+// changed films again beside the old ones, and never pauses, seeks or reloads: playback goes on.
+
+const mediaUrl = bust => `media/${encodeURIComponent(M.recording)}${bust ? `?v=${Date.now()}` : ''}`;
+
+function showName() {
+  const name = M.name || 'Preview';
+  $('name').textContent = name;
+  document.title = only ? `${name}: ${only}` : `${name} preview`;
+}
+
+// What a film reads from the edit (film/timeline.mjs): its part's span, and the silent lead of the first part.
+const filmInputs = (model, film) => {
+  const part = model.whole.find(candidate => candidate.film === film);
+  return part ? JSON.stringify([part.from, part.to, part.lead]) : '';
+};
+
+// Puts a new model in place and returns the films that must be made again.
+function useModel(next) {
+  const old = M;
+  const before = filmNames();
+  M = next;
+  const after = filmNames();
+  const removed = before.filter(name => !after.includes(name));
+  const changed = after.filter(name => before.includes(name) && (old.take !== next.take || filmInputs(old, name) !== filmInputs(next, name)));
+  if (old.recording !== next.recording || old.take !== next.take || old.sound !== next.sound) {
+    if (next.sound) video.src = mediaUrl(old.recording === next.recording);
+    else { video.removeAttribute('src'); video.load(); }
+  }
+  fitSilent();
+  S.time = clamp(S.time, 0, Math.max(0, S.total - 1 / FPS));
+  if (!S.total && S.playing) pauseNow();
+  R.stack = '';
+  R.word = -2;
+  buildBar();
+  buildCues();
+  showName();
+  dropFilms(removed);
+  return changed;
+}
+
+const pending = { edit: false, all: false, scenes: false, films: new Set() };
+let refreshTimer = 0;
+let refreshing = false;
+let again = false;
+
+// files: names under film/ from the server, or null when anything may have changed.
+function request(files) {
+  if (!files) pending.all = pending.edit = true;
+  else {
+    for (const file of files) {
+      const name = String(file).replace(/\\/g, '/');
+      if (name === 'edit.mjs' || name === 'words.mjs') pending.edit = true;
+      else if (/^scenes\/[a-z0-9-]+\.mjs$/.test(name)) { pending.films.add(name.slice(7, -4)); pending.scenes = true; }
+      else pending.all = pending.edit = true;
+    }
+  }
+  clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(refresh, 100);
+}
+
+// One refresh at a time; a save that arrives meanwhile is picked up when the current one ends.
+async function refresh() {
+  if (refreshing) { again = true; return; }
+  refreshing = true;
+  try {
+    do {
+      again = false;
+      const work = { edit: pending.edit, all: pending.all, scenes: pending.scenes, films: [...pending.films] };
+      pending.edit = pending.all = pending.scenes = false;
+      pending.films.clear();
+      await refreshOnce(work);
+    } while (again);
+  } catch (error) {
+    console.error(error);
+  } finally { refreshing = false; }
+}
+
+// Tells the person about a scene that failed to start, on the pill (a scene that is not being
+// watched would otherwise fail without anyone knowing). Returns whether one failed.
+function reportFilms() {
+  const broken = [...films.values()].filter(entry => entry.error);
+  if (!broken.length) return false;
+  pill(broken.length === 1 ? `${broken[0].name} has an error` : `${broken.length} scenes have errors`, { bad: true, title: broken[0].error.split('\n')[0] });
+  return true;
+}
+
+async function refreshOnce(work) {
+  const changed = new Set(work.films);
+  let problem = '';
+  if (work.edit) {
+    const result = await loadEdit();
+    if (result.ok) useModel(buildModel(result.data)).forEach(name => changed.add(name));
+    else problem = result.message;
+  }
+  if (work.all) filmNames().forEach(name => changed.add(name));
+  if (work.scenes) loadScenes();
+  await replaceFilms([...changed].filter(name => films.has(name)));
+  preloadFilms();
+  if (problem) {
+    pill('The edit has an error', { bad: true, title: problem });
+    toast(`film/edit.mjs has an error: ${problem}`, 'error', 8000);
+  } else if (!reportFilms()) updated();
+}
+
+// ------------------------------------------------------------ the server connection
+const link = { events: null, interrupted: false, lost: false, timer: 0 };
+
+function connect() {
+  link.events?.close();
+  const events = new EventSource('events');
+  link.events = events;
+  events.onopen = () => {
+    clearTimeout(link.timer);
+    link.timer = 0;
+    if (!link.interrupted) return;
+    link.interrupted = false;
+    if (link.lost) { link.lost = false; clearPill(); }
+    request(null);
+    pollExport();
+  };
+  events.onerror = () => {
+    link.interrupted = true;
+    if (!link.lost && !link.timer) link.timer = setTimeout(() => { link.timer = 0; link.lost = true; pill('Preview server is not answering', { bad: true }); }, 3000);
+    // The browser retries by itself, unless the server answered with something that is not a stream.
+    if (events.readyState === EventSource.CLOSED) setTimeout(connect, 2000);
+  };
+  events.onmessage = event => {
+    let data = null;
+    try { data = JSON.parse(event.data); } catch { /* an older server sends no details: anything may have changed */ }
+    if (data?.page) {
+      // The page itself was saved. The address keeps the playhead, so the reload comes back to it.
+      try { sessionStorage.setItem('preview.reloaded', String(Date.now())); } catch { /* storage can be blocked */ }
+      location.reload();
+      return;
+    }
+    request(Array.isArray(data?.files) ? data.files : null);
+  };
+}
+
+// ------------------------------------------------------------ start
+const hashTime = () => {
+  const match = /#t=([\d.]+)/.exec(location.hash);
+  return match ? Number(match[1]) || 0 : null;
+};
+addEventListener('hashchange', () => { const t = hashTime(); if (t != null) seek(t); });
+
+addEventListener('unhandledrejection', event => {
+  if (event.reason?.name === 'AbortError') return;
+  console.error(event.reason);
+  toast(`Something went wrong: ${event.reason?.message || event.reason}`, 'error', 6000);
+});
+
+async function boot() {
+  const wanted = hashTime() || 0;
+  const result = await loadEdit();
+  if (result.ok) useModel(buildModel(result.data));
+  else { M = { ...M, loading: false, error: result.message }; showName(); }
+  // A scene the edit does not play is as long as its film says, so its length comes later.
+  if (S.total) seek(wanted); else if (wanted) S.want = wanted;
+  loadNotes();
+  pollExport();
+  if (docked() && prefs.get('drawer', false) === true) setDrawer(true);
+  await preloadFilms();
+  let reloaded = false;
+  try { reloaded = Date.now() - Number(sessionStorage.getItem('preview.reloaded')) < 15000; sessionStorage.removeItem('preview.reloaded'); } catch { /* storage can be blocked */ }
+  if (!reportFilms() && reloaded) updated();
+}
 
 // For checks from a script: where the preview is and what it shows.
 window.__preview = {
-  seek, play,
-  state: () => ({ time, total, playing, part: $('where').textContent, message: message.textContent, videoTime: video.currentTime, films: [...films].map(([name, entry]) => ({ name, ready: Boolean(entry.api), error: entry.error })) }),
+  seek: t => seek(Number(t)),
+  play: on => play(on),
+  state: () => ({
+    time: S.time, total: S.total, playing: S.playing, ended: S.ended, loop: S.loop, rate: S.rate, muted: S.muted,
+    part: R.where, message: $('message').hidden ? '' : $('message').textContent,
+    videoTime: video.currentTime, loading: M.loading, error: M.error, expected: filmNames().length,
+    films: [...films.values()].map(entry => ({ name: entry.name, ready: Boolean(entry.api), error: entry.error })),
+    beats: E.beats, errors: E.errors, recoveries: E.recoveries,
+  }),
 };
 
-layoutStage();
-layoutBar();
-loadNotes();
-if (broken) say(broken, true);
-else if (!segments.length) say('The edit (film/edit.mjs) has no parts yet.\nPick a scene from the list at the top to watch it on its own.');
-else {
-  if (segments[0].film) film(segments[0].film);
-  seek(Number(/#t=([\d.]+)/.exec(location.hash)?.[1]) || 0);
-}
 requestAnimationFrame(tick);
+connect();
+boot().catch(error => { M = { ...M, loading: false, error: clean(error) }; });
 </script>
 </body>
 </html>

@@ -20,15 +20,21 @@
 // Give a person the address this prints, never one from memory.
 //
 // In the page: Space plays, the arrows step a frame (Shift: a second),
-// [ and ] jump between parts, L loops the part, N writes a note. Notes are
-// kept in review/notes.md with the time, the scene and the scene's own time,
-// which is what a fix needs.
+// [ and ] jump between parts, Home and End go to the ends, L loops the part
+// you are in, N writes a note, M mutes, F goes fullscreen and ? lists the
+// keys. Notes are kept in review/notes.md with the time, the scene and the
+// scene's own time, which is what a fix needs.
+//
+// Saving a file in film/ updates the open page in place: the cut, the words
+// and the films refresh and a video that is playing keeps playing. Saving
+// lib/preview.html reloads the page, back where it was.
 //
 // Export video and Quick draft run deliver.mjs (with --draft for the quick
 // one) and Download hands over the newest build/<NAME>*.mp4, so a person can
 // get a file without a terminal. One export runs at a time.
 import { spawn } from 'node:child_process';
-import { createReadStream, existsSync, watch } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { createReadStream, existsSync, statSync, watch } from 'node:fs';
 import { appendFile, mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import { createServer, request as httpRequest } from 'node:http';
 import { basename, dirname, extname, join, resolve, sep } from 'node:path';
@@ -65,6 +71,16 @@ const TYPES = {
 };
 const MOUNTS = [['/film/', join(here, 'film')], ['/media/', join(here, 'assets', 'video')], ['/sounds/', join(here, 'assets', 'sounds')]];
 
+// Sends a file as it is read. A browser that stops asking (a seek, a closed tab)
+// closes the file, and a file that cannot be read ends the answer instead of
+// crashing the server.
+function stream(response, file, options) {
+  const source = createReadStream(file, options);
+  source.on('error', () => response.destroy());
+  response.on('close', () => source.destroy());
+  source.pipe(response);
+}
+
 // A file, whole or the range a <video> asks for when it seeks.
 async function sendFile(request, response, file) {
   const type = TYPES[extname(file).toLowerCase()];
@@ -75,14 +91,14 @@ async function sendFile(request, response, file) {
   const range = /^bytes=(\d*)-(\d*)$/.exec(request.headers.range || '');
   if (!range) {
     response.writeHead(200, { ...headers, 'content-length': info.size });
-    createReadStream(file).pipe(response);
+    stream(response, file);
     return;
   }
   const start = range[1] ? Number(range[1]) : Math.max(0, info.size - Number(range[2]));
   const end = range[1] && range[2] ? Math.min(Number(range[2]), info.size - 1) : info.size - 1;
   if (!(start <= end)) { response.writeHead(416, { 'content-range': `bytes */${info.size}` }).end(); return; }
   response.writeHead(206, { ...headers, 'content-range': `bytes ${start}-${end}/${info.size}`, 'content-length': end - start + 1 });
-  createReadStream(file, { start, end }).pipe(response);
+  stream(response, file, { start, end });
 }
 
 async function body(request) {
@@ -168,10 +184,13 @@ const server = createServer(async (request, response) => {
     // Which video this is, so an address can be checked before it is given out.
     if (path === '/__whoami') return json(response, { hub: HUB, name: slug, root: here, pid: process.pid });
     if (path === '/events') {
-      response.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-store', connection: 'keep-alive' });
+      response.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-store', connection: 'keep-alive', 'x-accel-buffering': 'no' });
       response.write('retry: 1000\n\n');
       listeners.add(response);
-      request.on('close', () => listeners.delete(response));
+      const drop = () => listeners.delete(response);
+      request.on('close', drop);
+      response.on('close', drop);
+      response.on('error', drop);
       return;
     }
     if (path === '/scenes') {
@@ -204,7 +223,7 @@ const server = createServer(async (request, response) => {
       if (!video) { response.writeHead(404, { 'content-type': 'text/plain' }).end('There is no video yet. Export one first.'); return; }
       const file = join(BUILD, video.file);
       response.writeHead(200, { 'content-type': TYPES['.mp4'], 'content-length': video.size, 'content-disposition': `attachment; filename="${basename(file)}"`, 'cache-control': 'no-store' });
-      createReadStream(file).pipe(response);
+      stream(response, file);
       return;
     }
     const mount = MOUNTS.find(([prefix]) => path.startsWith(prefix));
@@ -219,12 +238,55 @@ const server = createServer(async (request, response) => {
   }
 });
 
-// Saving a file in film/ reloads the page, which comes back where it was.
+// Every open page hears about a change, so it can update itself.
+const tell = message => {
+  for (const listener of listeners) {
+    try { listener.write(message); } catch { listeners.delete(listener); }
+  }
+};
+// A comment line every so often keeps the stream open through idle stretches
+// and shows a page that its server has gone.
+setInterval(() => tell(': ping\n\n'), 15000).unref();
+
+// Saving a file in film/ updates the pages already open: they get the names
+// of what changed and refresh the cut and the films in place, so a video that
+// is playing keeps playing. Downloaded icons and an editor's temporary files
+// are not changes.
+const isFolder = name => { try { return statSync(join(here, 'film', name)).isDirectory(); } catch { return false; } };
+const quiet = name => /^assets\/icons(\/|$)/.test(name)
+  || /(^|\/)(\.[^/]*|[^/]*~|[^/]*\.(tmp|temp|swp|swx|bak|log|part|crdownload))$/i.test(name)
+  || isFolder(name);
+const changed = new Set();
 let pending = null;
-watch(join(here, 'film'), { recursive: true }, () => {
+watch(join(here, 'film'), { recursive: true }, (event, filename) => {
+  const name = String(filename || '').replace(/\\/g, '/');
+  if (name && quiet(name)) return;
+  changed.add(name || '*');
   clearTimeout(pending);
-  pending = setTimeout(() => { for (const listener of listeners) listener.write('data: reload\n\n'); }, 150);
-});
+  pending = setTimeout(() => {
+    const files = [...changed].slice(0, 30);
+    changed.clear();
+    tell(`data: ${JSON.stringify({ files })}\n\n`);
+  }, 150);
+}).on('error', () => {});
+// The page itself is different: it reloads, back where it was. Windows reports
+// one save as two changes, and a touch is not a change, so it only reloads
+// when the text of the page is not the text the open pages already have.
+const PAGE = join(here, 'lib', 'preview.html');
+const pageHash = () => readFile(PAGE).then(text => createHash('sha1').update(text).digest('hex'));
+let pageSeen = null;
+pageHash().then(hash => { pageSeen ??= hash; }, () => {});
+let paging = null;
+watch(join(here, 'lib'), (event, filename) => {
+  if (filename !== 'preview.html') return;
+  clearTimeout(paging);
+  paging = setTimeout(async () => {
+    const hash = await pageHash().catch(() => null);
+    if (!hash || hash === pageSeen) return;
+    pageSeen = hash;
+    tell('data: {"page":true}\n\n');
+  }, 200);
+}).on('error', () => {});
 
 // ------------------------------------------------------------ the front door
 // The one port every video's address is on. Whichever preview holds it keeps

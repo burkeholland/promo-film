@@ -55,9 +55,16 @@
 
 | Symptom | Fix |
 | --- | --- |
-| Red text over the picture | That is the scene's own error, the same one the renderer would print. Fix it and save: the page reloads. |
-| No sound | Browsers hold sound until the page is clicked once. Click Play. |
-| A short freeze at some cuts | The edit jumps in the recording there and the browser has to seek. The rendered video does not freeze. |
+| Red text over the picture | That is the scene's own error, the same one the renderer would print. Fix it and save: the page takes the fix in without reloading. |
+| No sound | Browsers hold sound until the page is clicked or a key is pressed. The page says "Sound was blocked. Press Space or click Play to start." Do that once. |
+| A short freeze at some cuts | The edit jumps in the recording there and the browser has to seek. The page holds its clock for up to a second while the sound catches up, then plays on without the sound, and it loads each scene before its cut. A longer freeze is worth a note with the time. The rendered video does not freeze. |
+| The playhead stopped by itself | Read what the page says. At the end of the edit it shows Replay, and Space starts again from 0:00. A link with `?scene=<name>` stops at the end of that one scene (and offers "Continue in the whole edit" when the edit plays that scene). "Playback stopped for a moment, so it was started again" means the page caught a stall and restarted it. If it stops anywhere else with no message, write a note there with N. |
+| "The sound is not keeping up, so the picture is playing on without it" | The recording's sound did not catch up with the picture for a full second (a busy machine, or a recording still loading). Pause and press Play to start the sound over. If it repeats at the same place, write a note there. |
+| A small "Updated 12:34:56" note appears | A file was saved and the page took it in without stopping. It goes away after a few seconds. It also shows after the page reloads itself because `lib/preview.html` was saved. |
+| "Preview server is not answering" | `node preview.mjs` for this project stopped or was restarted. Start it again: the page reconnects by itself and takes in what changed. |
+| "The note was not saved" | The words are still in the box. Read the reason under it and press Enter again. Check that `node preview.mjs` is running. Notes go to `review/notes.md`. |
+| The notes drawer covers part of the picture | It floats over the picture only in a short window, or a narrow one that is wider than tall. From 800 px wide it sits beside the picture, and in a tall narrow window (a side panel) it sits under it. Press Esc or the Notes button to close it, or make the window taller or wider. The drawer is remembered across reloads only when it does not float. |
+| Playback stops or jumps back whenever a file is saved | The project has the old player, which reloaded the whole page on every save. Copy `preview.mjs` and `lib/preview.html` from `SKILL/template` into it and run `node preview.mjs` again. |
 | The preview looks sharper or softer than the render | The preview has no motion blur and is scaled by the browser. Judge timing and framing there, sharpness from a still. |
 | Export video says another export is running | One at a time. Click the status line beside the buttons to see its log. |
 | An export failed | Click the status line: the log shows the step that failed and its message, the same as `node deliver.mjs` would print. |

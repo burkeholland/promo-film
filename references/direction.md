@@ -77,6 +77,7 @@ note on a real video.
 | "That cut is harsh" / "it cuts too quickly" | Hold longer after the last action (0.4 s or more), or end the scene on the next scene's first framing. Often the last click sits too close to the cut. |
 | "There is a fast cut going into that demo" | The scene opens on a screen that changes within a second (a typed prompt, then Enter), which reads as two cuts. Open in the state the action starts from: the prompt already sent and in the thread. Give a cue a negative time so its rows have finished fading in by the first frame. `examples/local-models/scenes/plan-handoff.mjs`. |
 | "Too fast" / "I can't read it" | Longer hold on the thing to read, or a closer framing. Not a slower pointer. |
+| "It just stops" / "the playhead stopped" (about the preview, not the video) | Check the preview before the edit. A `?scene=` link ends at the end of that scene, the end of the edit shows Replay, and an older `preview.mjs` or `lib/preview.html` reloads the whole page on every save. See "Preview" in `references/troubleshooting.md`. |
 | "It feels fake" | Something behaves unlike the app: a hover that is missing, a menu that appears with no fade, a pointer that moves in a straight line, text that appears with no typing. |
 | "Show X when I say Y" | A cue: `T.said('Y') - .08`. Then check every later cue still fits. |
 | "The chip should say X" / a wording change | Data in the scene or the kit. Then look for the same text in every other scene. |

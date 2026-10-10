@@ -59,8 +59,9 @@ or the audio changes. Speed of each review round matters more than polish on any
 - "Too much zoom in the automations part, and the cut at 1:12 is harsh."
 
 **Review** in the live preview (the agent gives you a link). Space plays, the arrow keys step a
-frame, and **N writes a note at the frame you are on**. Notes are saved with the exact time and
-scene, so "this is too fast" is enough. Or just say the time: "at 0:42 ...".
+frame (Shift for a second), `[` and `]` jump between parts, L loops the part you are in, and
+**N writes a note at the frame you are on**. `?` lists every key. Notes are saved with the exact
+time and scene, so "this is too fast" is enough. Or just say the time: "at 0:42 ...".
 
 **You get** `build/<name>.mp4` (1920 x 1080, 30 fps, H.264, sound at -14 LUFS), `build/<name>.srt`
 captions, and a list of everything that was made up, so nothing false ships by accident. The
@@ -174,8 +175,9 @@ Start `node preview.mjs` once, keep it running, and give the person the link it 
 `Preview:` line. Every video being previewed is a path on one port
 (`http://127.0.0.1:4747/<name>/`, where `<name>` is `NAME` in `film/edit.mjs`), so an address names
 its video. Read the address from that line every time. Never type it from memory or from the last
-project: another project's preview may be the one answering. It reloads when a file is saved.
-For each scene:
+project: another project's preview may be the one answering. Saving a file in `film/` updates the
+open page in place and playback keeps going; saving `lib/preview.html` reloads it at the same
+moment. For each scene:
 
 1. Copy the closest scene (`film/scenes/demo.mjs`, `SKILL/examples/said-cues/routed.mjs`, or one in
    `SKILL/examples/local-models/scenes/`) and change it. [references/scenes.md](references/scenes.md)
@@ -247,7 +249,7 @@ the lines the films show on screen.
 
 | Command | Makes | Takes |
 | --- | --- | --- |
-| `node preview.mjs` | Live player with sound, notes, reload on save, and Quick draft / Export video / Download buttons, at `http://127.0.0.1:4747/<name>/`. Every project's preview shares that port, each under its own name. | instant |
+| `node preview.mjs` | Live player with sound, a notes drawer, updates on save without stopping playback, and Quick draft / Export video / Download buttons, at `http://127.0.0.1:4747/<name>/`. Every project's preview shares that port, each under its own name. | instant |
 | `node deliver.mjs` | Everything a delivery needs: final video, storyboard, layout checks, captions, made-up list, and `build/<name>-delivery.md` | ~3x real time, seconds if nothing changed |
 | `node deliver.mjs --draft` | Review cut with sound, `build/<name>-draft.mp4` | about real time |
 | `node render.mjs --scene S --sheet` | 12 frames of a scene on one picture | ~10 s |

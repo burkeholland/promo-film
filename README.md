@@ -75,8 +75,9 @@ What to expect:
 
 1. The agent asks once for anything missing, writes a short outline, and waits for a yes.
 2. It builds the opening ten seconds first and shows you, before building the rest.
-3. You review in a live preview in the browser. Space plays, arrows step a frame, and **N writes
-   a note at the frame you are on**. "Too fast" is enough: the note carries the time and scene.
+3. You review in a live preview in the browser. Space plays, arrows step a frame, `[` and `]`
+   jump between parts, and **N writes a note at the frame you are on**. "Too fast" is enough: the
+   note carries the time and scene.
 4. It delivers the MP4, the captions and the made-up list.
 5. Changes after that are short notes. Each reply says what changed, what the agent decided on
    its own, and what it could not check.
@@ -101,7 +102,7 @@ Measured on the machine it was built on:
 | Step | Takes |
 | --- | --- |
 | Contact sheet of one scene | about 10 s |
-| Live preview | instant, reloads on save |
+| Live preview | instant, updates on save while it plays |
 | Draft cut of a 20 s film | about 20 s |
 | Full quality render | about 3x the film's length, only for films that changed |
 | Compose the finished video | about its own length |
