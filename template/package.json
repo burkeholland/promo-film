@@ -4,6 +4,7 @@
   "description": "An app promo film: scenes drawn in HTML, rendered with Edge and ffmpeg.",
   "scripts": {
     "preview": "node preview.mjs",
+    "test:preview": "node --test tests/preview-download.test.mjs",
     "words": "python tools/transcribe.py",
     "storyboard": "node render.mjs --all --sheet",
     "draft": "node deliver.mjs --draft",

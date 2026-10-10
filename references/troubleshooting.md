@@ -70,6 +70,7 @@
 | Export video says another export is running | One at a time. Click the status line beside the buttons to see its log. |
 | An export failed | Click the status line: the log shows the step that failed and its message, the same as `node deliver.mjs` would print. |
 | Download link is missing | Nothing has been exported yet. The links show the newest `build/<name>.mp4` and `build/<name>-draft.mp4`. |
+| Download opens the video instead of saving it in an embedded preview | The link points directly to `build/<filename>.mp4`; embedded previews can open it for playback. The same link keeps its native download behavior in regular browsers. |
 | The link shows another video, or a 404 that lists other videos | The address was not this project's. Each preview answers only at `http://127.0.0.1:4747/<its NAME>/`: use the `Preview:` line this project's `node preview.mjs` printed. `http://127.0.0.1:4747/` lists every preview that is running, with its folder. |
 | The address ends in `-2` | Another folder's video has the same `NAME` and started first. Both work. Give the project its own `NAME` in `film/edit.mjs` and start the preview again. |
 | `Port 4747 is held by something that is not this preview` | Another program has the port, so the video is on a port of its own until it is free (the line above the message is the address). Stop that program, or start every preview with the same `--port`. |

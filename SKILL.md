@@ -65,7 +65,7 @@ time and scene, so "this is too fast" is enough. Or just say the time: "at 0:42 
 
 **You get** `build/<name>.mp4` (1920 x 1080, 30 fps, H.264, sound at -14 LUFS), `build/<name>.srt`
 captions, and a list of everything that was made up, so nothing false ships by accident. The
-preview's **Download** button hands over the newest video (or draft) without a terminal.
+preview's **Download** button links directly to the newest video (or draft) in `build/`.
 
 **The model.** Use the most capable model you have, one that can look at pictures, for the main
 loop. The work is long (hundreds of steps), it reads screenshots, stills and spectrograms, and small
@@ -209,7 +209,7 @@ you which rule above it broke. Fix the cause, do not pad the time.
 
 When they want a file instead: **Quick draft** in the preview, or `node deliver.mjs --draft`
 (`render --all --draft`, then `compose --draft`), makes `build/<name>-draft.mp4`, and the preview's
-**Download** link hands it over. Only changed films render again.
+**Download** link points straight to that MP4. Only changed films render again.
 
 ### 6. Deliver
 

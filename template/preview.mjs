@@ -37,7 +37,7 @@ import { createHash } from 'node:crypto';
 import { createReadStream, existsSync, statSync, watch } from 'node:fs';
 import { appendFile, mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import { createServer, request as httpRequest } from 'node:http';
-import { basename, dirname, extname, join, resolve, sep } from 'node:path';
+import { dirname, extname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { fetchIcon, iconName } from './lib/icons.mjs';
@@ -69,7 +69,7 @@ const TYPES = {
   '.mp3': 'audio/mpeg',
   '.wav': 'audio/wav',
 };
-const MOUNTS = [['/film/', join(here, 'film')], ['/media/', join(here, 'assets', 'video')], ['/sounds/', join(here, 'assets', 'sounds')]];
+const MOUNTS = [['/film/', join(here, 'film')], ['/media/', join(here, 'assets', 'video')], ['/sounds/', join(here, 'assets', 'sounds')], ['/build/', BUILD]];
 
 // Sends a file as it is read. A browser that stops asking (a seek, a closed tab)
 // closes the file, and a file that cannot be read ends the answer instead of
@@ -217,14 +217,6 @@ const server = createServer(async (request, response) => {
       if (job?.running) return json(response, await exportState(), 409);
       startExport(new URL(request.url, 'http://localhost').searchParams.get('draft') === '1');
       return json(response, await exportState());
-    }
-    if (path === '/download') {
-      const video = await newestVideo(new URL(request.url, 'http://localhost').searchParams.get('draft') === '1');
-      if (!video) { response.writeHead(404, { 'content-type': 'text/plain' }).end('There is no video yet. Export one first.'); return; }
-      const file = join(BUILD, video.file);
-      response.writeHead(200, { 'content-type': TYPES['.mp4'], 'content-length': video.size, 'content-disposition': `attachment; filename="${basename(file)}"`, 'cache-control': 'no-store' });
-      stream(response, file);
-      return;
     }
     const mount = MOUNTS.find(([prefix]) => path.startsWith(prefix));
     const file = mount && resolve(mount[1], path.slice(mount[0].length));

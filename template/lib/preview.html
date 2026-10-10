@@ -1496,7 +1496,7 @@ function drawExport() {
     $('files').replaceChildren(...files.map(([file, draft]) => {
       const link = document.createElement('a');
       link.className = 'dl';
-      link.href = `download?draft=${draft}`;
+      link.href = `build/${encodeURIComponent(file.file)}`;
       link.download = file.file;
       link.title = `build/${file.file}`;
       link.insertAdjacentHTML('beforeend', icon('down'));
