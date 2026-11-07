@@ -10,7 +10,7 @@
 import { bezier, clamp, inOut, lerp, out, span } from '../motion.mjs';
 import { clock } from '../timeline.mjs';
 import {
-  AION, DH, DW, FG, H, HINT, ICON_INK, MUTED, W, WIN,
+  DH, DW, FG, H, HINT, ICON_INK, MUTED, W, WIN,
   h, icon, image, imagesDecoded, inside, label, loadAssets, mark, mix, place, px, r3, rect,
 } from '../kit.mjs';
 import {

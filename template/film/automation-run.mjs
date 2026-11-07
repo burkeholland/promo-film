@@ -1,4 +1,4 @@
-import { FG, MUTED, W, h, icon, place, px } from './kit.mjs';
+import { MUTED, W, h, icon, place, px } from './kit.mjs';
 import { navRect } from './app.mjs';
 import { spinner } from './session.mjs';
 import { span } from './motion.mjs';
