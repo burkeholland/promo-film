@@ -1,4 +1,4 @@
-import { DEFAULT_CHIP, FG, H, MUTED, W, WIN, h, icon, label, place, px, rect } from './kit.mjs';
+import { DEFAULT_CHIP, FG, H, MUTED, W, WIN, h, icon, place, px, rect } from './kit.mjs';
 import { buildField, popInOut, showText } from './app.mjs';
 import { inside, mix } from './kit.mjs';
 import { out, span } from './motion.mjs';

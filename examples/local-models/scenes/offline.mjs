@@ -10,7 +10,7 @@
 // finishes as "don't have" is said, and its reply comes in over "an internet
 // connection". The reply says what it did and makes no promise about where
 // the data went.
-import { bezier, clamp, easeIn, inOut, out, span } from '../motion.mjs';
+import { clamp, easeIn, inOut, out, span } from '../motion.mjs';
 import { clock } from '../timeline.mjs';
 import { AION, DH, DW, WIN, imagesDecoded, inside, loadAssets, r3, rect } from '../kit.mjs';
 import { buildCursor, buildHome, buildStage, buildWindow, film, pointAt, showText } from '../app.mjs';
